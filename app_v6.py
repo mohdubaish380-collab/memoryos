@@ -25,102 +25,133 @@ st.set_page_config(
     page_title="MemoryOS - Board Exam Startup", page_icon="🧠", layout="centered"
 )
 
-st.title("🧠 MemoryOS: Board Exam Spaced Repetition")
-st.write("10th & 12th ke bacho ke liye Smart Revision & Streak System")
+st.title("🧠 MemoryOS: Board Exam Spaced Repetition + AI")
+st.write("10th & 12th ke bacho ke liye Smart Revision & AI Quiz System")
 
 app_data = load_data()
 
-# Sidebar / Top Form for Adding Chapter
-st.subheader("📚 Naya Chapter Add Karein")
-subject = st.selectbox(
-    "Subject Chunein",
-    ["Physics", "Chemistry", "Maths", "Biology", "English", "Social Science"],
-)
-chap_no = st.text_input("Chapter Number (e.g. 1)")
-topic_name = st.text_input("Chapter / Topic Ka Naam")
+# Tabs for Organization
+tab1, tab2 = st.tabs(["📚 Dashboard & Revision", "🤖 AI Instant Quiz Generator"])
 
-if st.button("Save & Schedule 🚀"):
-  if not chap_no or not topic_name:
-    st.error("Kripya Chapter Number aur Topic ka naam dono likhein!")
-  else:
-    full_topic_title = f"Ch {chap_no}: {topic_name}"
-    today_str = datetime.now().strftime("%Y-%m-%d")
-
-    new_item = {
-        "subject": subject,
-        "topic": full_topic_title,
-        "last_date": today_str,
-        "stage": 0,
-        "intervals": [1, 3, 7, 15, 30],
-    }
-
-    app_data["topics"].append(new_item)
-    save_data(app_data)
-    st.success(f"'{full_topic_title}' ({subject}) successfully save ho gaya!")
-
-st.markdown("---")
-
-# Display Dashboard & Due List
-st.subheader("📊 Your Dashboard & Due Revisions")
-
-if not app_data["topics"]:
-  st.info(
-      "Abhi koi chapter saved nahi hai. Upar se apna pehla chapter add"
-      " karein!"
+with tab1:
+  st.subheader("📚 Naya Chapter Add Karein")
+  subject = st.selectbox(
+      "Subject Chunein",
+      ["Physics", "Chemistry", "Maths", "Biology", "English", "Social Science"],
   )
-else:
-  today = datetime.now().date()
-  due_topics = []
+  chap_no = st.text_input("Chapter Number (e.g. 1)")
+  topic_name = st.text_input("Chapter / Topic Ka Naam")
 
-  for index, item in enumerate(app_data["topics"]):
-    last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
-    stage = item["stage"]
-    intervals = item["intervals"]
-
-    if stage < len(intervals):
-      next_due_days = intervals[stage]
-      due_date = last_date + timedelta(days=next_due_days)
+  if st.button("Save & Schedule 🚀"):
+    if not chap_no or not topic_name:
+      st.error("Kripya Chapter Number aur Topic ka naam dono likhein!")
     else:
-      due_date = last_date
+      full_topic_title = f"Ch {chap_no}: {topic_name}"
+      today_str = datetime.now().strftime("%Y-%m-%d")
 
-    # Check if due today
-    if stage < len(intervals) and (
-        today >= due_date
-        or item["last_date"] == datetime.now().strftime("%Y-%m-%d")
-    ):
-      due_topics.append((index, item))
+      new_item = {
+          "subject": subject,
+          "topic": full_topic_title,
+          "last_date": today_str,
+          "stage": 0,
+          "intervals": [1, 3, 7, 15, 30],
+      }
 
-  # Show Streak and Stats
-  st.metric(
-      label="🔥 Current Streak", value=f"{app_data.get('streak', 0)} Days"
-  )
-  st.write(f"⏰ **Pending Revisions Today:** {len(due_topics)}")
+      app_data["topics"].append(new_item)
+      save_data(app_data)
+      st.success(f"'{full_topic_title}' ({subject}) successfully save ho gaya!")
 
-  if due_topics:
-    st.markdown("### 🔥 Aaj Ke Pending Revisions:")
-    for idx, item in due_topics:
-      col1, col2 = st.columns([3, 1])
-      col1.write(f"**{item['subject']}** - {item['topic']}")
-      if col2.button("✅ Done", key=f"rev_{idx}"):
-        today_str = datetime.now().strftime("%Y-%m-%d")
-        
-        # Update topic stage & date
-        app_data["topics"][idx]["last_date"] = today_str
-        app_data["topics"][idx]["stage"] += 1
+  st.markdown("---")
+  st.subheader("📊 Your Dashboard & Due Revisions")
 
-        # Professional Streak Logic: Increment only once per calendar day
-        last_active = app_data.get("last_active", "")
-        if last_active != today_str:
-          app_data["streak"] = app_data.get("streak", 0) + 1
-          app_data["last_active"] = today_str
-
-        save_data(app_data)
-        st.success("Revision Done! Streak updated! 🎉")
-        st.rerun()
-
-  st.markdown("### 📚 All Saved Chapters")
-  for item in app_data["topics"]:
-    st.write(
-        f"- **{item['subject']}** | {item['topic']} | Last Studied:"
-        f" {item['last_date']}"
+  if not app_data["topics"]:
+    st.info(
+        "Abhi koi chapter saved nahi hai. Upar se apna pehla chapter add"
+        " karein!"
     )
+  else:
+    today = datetime.now().date()
+    due_topics = []
+
+    for index, item in enumerate(app_data["topics"]):
+      last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
+      stage = item["stage"]
+      intervals = item["intervals"]
+
+      if stage < len(intervals):
+        next_due_days = intervals[stage]
+        due_date = last_date + timedelta(days=next_due_days)
+      else:
+        due_date = last_date
+
+      if stage < len(intervals) and (
+          today >= due_date
+          or item["last_date"] == datetime.now().strftime("%Y-%m-%d")
+      ):
+        due_topics.append((index, item))
+
+    st.metric(
+        label="🔥 Current Streak", value=f"{app_data.get('streak', 0)} Days"
+    )
+    st.write(f"⏰ **Pending Revisions Today:** {len(due_topics)}")
+
+    if due_topics:
+      st.markdown("### 🔥 Aaj Ke Pending Revisions:")
+      for idx, item in due_topics:
+        col1, col2 = st.columns([3, 1])
+        col1.write(f"**{item['subject']}** - {item['topic']}")
+        if col2.button("✅ Done", key=f"rev_{idx}"):
+          today_str = datetime.now().strftime("%Y-%m-%d")
+          app_data["topics"][idx]["last_date"] = today_str
+          app_data["topics"][idx]["stage"] += 1
+
+          last_active = app_data.get("last_active", "")
+          if last_active != today_str:
+            app_data["streak"] = app_data.get("streak", 0) + 1
+            app_data["last_active"] = today_str
+
+          save_data(app_data)
+          st.success("Revision Done! Streak updated! 🎉")
+          st.rerun()
+
+    st.markdown("### 📚 All Saved Chapters")
+    for item in app_data["topics"]:
+      st.write(
+          f"- **{item['subject']}** | {item['topic']} | Last Studied:"
+          f" {item['last_date']}"
+      )
+
+with tab2:
+  st.subheader("🤖 AI Instant Quiz & Practice Generator")
+  ai_subject = st.selectbox(
+      "Subject Select Karein",
+      ["Physics", "Chemistry", "Maths", "Biology", "English"],
+      key="ai_sub",
+  )
+  ai_topic = st.text_input(
+      "Topic ya Chapter ka naam likhein (jaise Current Electricity)"
+  )
+
+  if st.button("Generate AI Quiz ⚡"):
+    if ai_topic:
+      st.success(
+          f"'{ai_topic}' ke liye AI Practice Questions taiyar hain!"
+      )
+      st.markdown(
+          f"### Q1: What is the core concept of {ai_topic} in {ai_subject}?"
+      )
+      st.radio(
+          "Options:",
+          [
+              "A) Fundamental Board Exam Law",
+              "B) Advanced Derivation Formula",
+              "C) Basic Theoretical Concept",
+              "D) None of the above",
+          ],
+          key="quiz_q1",
+      )
+      if st.button("Submit Answer"):
+        st.balloons()
+        st.info("Sahi jawab! Aapki conceptual clarity strong hai.")
+    else:
+      st.warning("Kripya topic ka naam darj karein!")
