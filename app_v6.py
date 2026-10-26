@@ -102,11 +102,18 @@ else:
       col1, col2 = st.columns([3, 1])
       col1.write(f"**{item['subject']}** - {item['topic']}")
       if col2.button("✅ Done", key=f"rev_{idx}"):
-        app_data["topics"][idx]["last_date"] = datetime.now().strftime(
-            "%Y-%m-%d"
-        )
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        
+        # Update topic stage & date
+        app_data["topics"][idx]["last_date"] = today_str
         app_data["topics"][idx]["stage"] += 1
-        app_data["streak"] = app_data.get("streak", 0) + 1
+
+        # Professional Streak Logic: Increment only once per calendar day
+        last_active = app_data.get("last_active", "")
+        if last_active != today_str:
+          app_data["streak"] = app_data.get("streak", 0) + 1
+          app_data["last_active"] = today_str
+
         save_data(app_data)
         st.success("Revision Done! Streak updated! 🎉")
         st.rerun()
