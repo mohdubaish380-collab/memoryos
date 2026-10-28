@@ -7,14 +7,14 @@ st.set_page_config(page_title="MemoryOS - Smart Hinglish Quiz", page_icon="🧠"
 st.title("🧠 MemoryOS: Smart Hinglish Quiz Generator")
 st.write("Local students ke liye aasan Hinglish mein board exam ki tayyari!")
 
-# Sidebar ya main area mein API Key input
-st.sidebar.header("🔑 Gemini API Settings")
-api_key = st.sidebar.text_input("Apni Gemini API Key yahan dalein:", type="password")
+# Yahan apni API key seedha fix kar di hai, user ko dalne ki zaroorat nahi padegi!
+# (Apni Gemini API key yahan andar daal di hai)
+API_KEY = "YAHAN_APNI_GEMINI_API_KEY_DAAL_DENA" 
 
-if api_key:
-    genai.configure(api_key=api_key)
+if API_KEY and API_KEY != "YAHAN_APNI_GEMINI_API_KEY_DAAL_DENA":
+    genai.configure(api_key=API_KEY)
     
-    # 1. Subject Type Selection (Literature vs Science/Math)
+    # Category Selection
     category = st.selectbox(
         "Padhai ki Category Chunein:",
         ["Literature / Story (Jaise Panchlite, Kahani, Chapter Summary)", "Science / Math / Physics (Numericals & Formulas)"]
@@ -29,7 +29,6 @@ if api_key:
                 try:
                     model = genai.GenerativeModel("gemini-1.5-flash")
                     
-                    # Category ke hisab se alag aur smart prompt
                     if "Literature" in category:
                         prompt = f"""
                         You are an expert UP Board / CBSE teacher. The student is studying a Literature/Story chapter.
@@ -74,6 +73,6 @@ if api_key:
                 except Exception as e:
                     st.error(f"Kuch gadbad ho gayi: {e}")
         else:
-                    st.warning("Bhai, kripya Subject aur Topic dono ka naam bharein!")
+            st.warning("Bhai, kripya Subject aur Topic dono ka naam bharein!")
 else:
-    st.info("👈 Pehle left sidebar mein apni Gemini API Key daalein taaki app chal sake.")
+    st.error("⚠️ Code ke andar API key nahi dali gayi hai. Kripya code mein 'YAHAN_APNI_GEMINI_API_KEY_DAAL_DENA' ki jagah apni asli Gemini API key likhein.")
