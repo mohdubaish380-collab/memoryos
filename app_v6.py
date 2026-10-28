@@ -143,7 +143,7 @@ if st.button("Generate Aasan AI Quiz ⚡"):
     with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
       try:
         # Fixed model name to avoid 404 error
-        model = genai.GenerativeModel("gemini-3.8-flash")
+        model = genai.GenerativeModel("gemini-1.5-flash")
         
         prompt = f"""
         You are an expert board exam teacher for Indian 10th and 12th students.
