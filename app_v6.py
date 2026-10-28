@@ -4,7 +4,7 @@ import os
 import streamlit as st
 import google.generativeai as genai
 
-DATA_FILE = "smart_revision_web.json"
+DATA_FILE = "smart_revision_web.json" 
 
 def load_data():
   if not os.path.exists(DATA_FILE):
@@ -28,11 +28,11 @@ st.write(
     "10th & 12th ke bacho ke liye Smart Revision & Aasan Hinglish AI Quiz System"
 )
 
-# Sidebar ya background mein API Key secure tarike se lene ke liye
-api_key = None
+# === YAHAN APNI MASTER API KEY EK BAAR DAAL DE (Bacho ko kabhi nahi dikhegi) ===
 try:
-    api_key = st.secrets["GEMINI_API_KEY"]
-except Exception:
+    MASTER_API_KEY = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=MASTER_API_KEY)
+except Exception: 
     pass
 
 app_data = load_data()
@@ -125,11 +125,8 @@ else:
 
 st.markdown("---")
 
-# 2. AI Quiz Generator Section (Asli Gemini AI Integration)
+# 2. AI Quiz Generator Section (No Key needed for students)
 st.subheader("🤖 AI Instant Quiz & Practice Generator (Aasan Bhasha)")
-
-if not api_key:
-    api_key = st.text_input("🔑 Apni Gemini API Key yahan daalein (Sirf ek baar):", type="password")
 
 ai_subject = st.selectbox(
     "Subject Select Karein",
@@ -142,15 +139,12 @@ ai_topic = st.text_input(
 )
 
 if st.button("Generate Aasan AI Quiz ⚡"):
-  if not api_key:
-    st.warning("Kripya pehle apni Gemini API Key darj karein!")
-  elif ai_topic:
+  if ai_topic:
     with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
       try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        # Fixed model name to avoid 404 error
+        model = genai.GenerativeModel("gemini-1.5-flash-latest")
         
-        # Smart prompt taaki story/literature ke liye story-based sawal banein aur science ke liye numerical/formula
         prompt = f"""
         You are an expert board exam teacher for Indian 10th and 12th students.
         Subject: {ai_subject}
