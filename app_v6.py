@@ -7,11 +7,9 @@ st.set_page_config(page_title="MemoryOS - Smart Hinglish Quiz", page_icon="🧠"
 st.title("🧠 MemoryOS: Smart Hinglish Quiz Generator")
 st.write("Local students ke liye aasan Hinglish mein board exam ki tayyari!")
 
-# Yahan apni API key seedha fix kar di hai, user ko dalne ki zaroorat nahi padegi!
-# (Apni Gemini API key yahan andar daal di hai)
-API_KEY = "YAHAN_APNI_GEMINI_API_KEY_DAAL_DENA" 
-
-if API_KEY and API_KEY != "YAHAN_APNI_GEMINI_API_KEY_DAAL_DENA":
+try:
+    # Streamlit Cloud ke secrets se API key apne aap utha lega
+    API_KEY = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=API_KEY)
     
     # Category Selection
@@ -74,5 +72,6 @@ if API_KEY and API_KEY != "YAHAN_APNI_GEMINI_API_KEY_DAAL_DENA":
                     st.error(f"Kuch gadbad ho gayi: {e}")
         else:
             st.warning("Bhai, kripya Subject aur Topic dono ka naam bharein!")
-else:
-    st.error("⚠️ Code ke andar API key nahi dali gayi hai. Kripya code mein 'YAHAN_APNI_GEMINI_API_KEY_DAAL_DENA' ki jagah apni asli Gemini API key likhein.")
+            
+except Exception:
+    st.error("⚠️ API key set nahi hai! Kripya niche diye gaye tareeqe se Streamlit secrets mein apni key daalein.")
