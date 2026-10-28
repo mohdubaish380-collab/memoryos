@@ -7,14 +7,12 @@ st.set_page_config(page_title="MemoryOS - Smart Hinglish Quiz", page_icon="🧠"
 st.title("🧠 MemoryOS: Smart Hinglish Quiz Generator")
 st.write("Local students ke liye aasan Hinglish mein board exam ki tayyari!")
 
-# Sidebar mein API Key input box
-st.sidebar.header("🔑 Gemini API Settings")
-api_key = st.sidebar.text_input("Apni Gemini API Key yahan dalein:", type="password")
+# Yahan apni Gemini API key sirf ek baar daal de. 
+# Iske baad kisi bhi student ko kabhi koi key nahi dalni padegi, app direct chalegi!
+API_KEY = "YAHAN_APNI_GEMINI_API_KEY_DAAL_DENA"
 
-if not api_key:
-    st.warning("👈 Pehle left sidebar mein apni Gemini API Key daalein taaki app unlock ho sake.")
-else:
-    genai.configure(api_key=api_key)
+try:
+    genai.configure(api_key=API_KEY)
     
     # Category Selection
     category = st.selectbox(
@@ -76,3 +74,6 @@ else:
                     st.error(f"Kuch gadbad ho gayi: {e}")
         else:
             st.warning("Bhai, kripya Subject aur Topic dono ka naam bharein!")
+            
+except Exception as e:
+    st.error("Kripya code ke andar apni sahi API key daalein.")
