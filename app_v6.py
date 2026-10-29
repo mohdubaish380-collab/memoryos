@@ -4,6 +4,7 @@ import os
 import streamlit as st
 import google.generativeai as genai
 
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 DATA_FILE = "smart_revision_web.json" 
 
 def load_data():
