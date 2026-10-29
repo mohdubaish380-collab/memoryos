@@ -40,44 +40,43 @@ if "logged_in" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state.username = ""
 
-# --- LOGIN & AUTHENTICATION PAGE ---
+# --- PROFESSIONAL SINGLE-PAGE LOGIN SCREEN ---
 if not st.session_state.logged_in:
-    st.title("🔐 MemoryOS - Secure Login")
-    st.write("Apne account mein login karein taaki aapka revision data safe rahe.")
+    st.markdown("<br>", unsafe_allow_html=True)
     
-    login_tab1, login_tab2, login_tab3 = st.tabs(["📧 Email / Username", "🌐 Continue with Google", "🍏 Apple ID"])
-    
-    with login_tab1:
-        st.subheader("Email ya Username se Login karein")
-        input_user = st.text_input("Username ya Email ID", key="login_email")
-        input_pass = st.text_input("Password", type="password", key="login_pass")
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("<h2 style='text-align: center;'>Create your account</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: gray; font-size: 14px;'>By continuing, you agree to the MemoryOS Terms of Service and Privacy Policy.</p>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        if st.button("Login Karein 🚀"):
-            if input_user and input_pass:
-                st.session_state.logged_in = True
-                st.session_state.username = input_user
-                st.success(ghar := f"Swagat hai, {input_user}!")
-                st.rerun()
-            else:
-                st.error("Kripya sabhi details bharein!")
-                
-    with login_tab2:
-        st.subheader("Google ke sath sign in karein")
-        st.write("Ek click mein Google account se judein.")
-        if st.button("🔴 Sign in with Google"):
+        # Professional Social & Single Sign-On Buttons
+        if st.button("🔴  Sign up with Google", use_container_width=True):
             st.session_state.logged_in = True
             st.session_state.username = "Google User"
             st.success("Google ke sath successfully login ho gaya!")
             st.rerun()
             
-    with login_tab3:
-        st.subheader("Apple ID ke sath sign in karein")
-        st.write("Apple ID ka use karke secure login karein.")
-        if st.button("🍎 Sign in with Apple ID"):
+        if st.button("🍏  Sign up with Apple", use_container_width=True):
             st.session_state.logged_in = True
             st.session_state.username = "Apple User"
             st.success("Apple ID ke sath successfully login ho gaya!")
             st.rerun()
+
+        st.markdown("<p style='text-align: center; color: gray;'>OR</p>", unsafe_allow_html=True)
+        
+        # Email / Username Manual Login Form on the same page
+        input_user = st.text_input("Username or Email", placeholder="Enter your email or username")
+        input_pass = st.text_input("Password", type="password", placeholder="Enter your password")
+        
+        if st.button("📧  Sign up / Log in with Email", use_container_width=True):
+            if input_user and input_pass:
+                st.session_state.logged_in = True
+                st.session_state.username = input_user
+                st.success(f"Swagat hai, {input_user}!")
+                st.rerun()
+            else:
+                st.error("Kripya email aur password dono bharein!")
 
 else:
     # --- MAIN APP AFTER LOGIN ---
@@ -194,7 +193,7 @@ else:
 
     st.markdown("---")
 
-    # 2. AI Quiz Generator Section (Fixed Model Error 404)
+    # 2. AI Quiz Generator Section
     st.subheader("🤖 AI Instant Quiz & Practice Generator (Aasan Bhasha)")
 
     ai_subject = st.selectbox(
@@ -211,7 +210,6 @@ else:
       if ai_topic:
         with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
           try:
-            # Model name fixed to prevent 404 error
             model = genai.GenerativeModel("gemini-1.5-flash")
             
             prompt = f"""
@@ -220,7 +218,7 @@ else:
             Topic/Chapter: {ai_topic}
             
             Create 1 high-quality Multiple Choice Question (MCQ) in Aasan Hinglish. 
-            If the topic is a story or literature chapter (like Panchlite, Prose, Poetry), make sure the question is about the story plot, characters, theme, or author—DO NOT ask formulas or numericals.
+            If the topic is a story or literature chapter, make sure the question is about the story plot, characters, theme, or author—DO NOT ask formulas or numericals.
             If the topic is Science or Math, make sure it tests concepts or formulas.
             
             Format your response cleanly like this:
