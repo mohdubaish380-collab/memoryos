@@ -4,7 +4,15 @@ import os
 import streamlit as st
 import google.generativeai as genai
 
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+# Yeh code laptop aur cloud dono par bina error ke chalega
+try:
+    if "GEMINI_API_KEY" in st.secrets:
+        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    else:
+        # Agar laptop par ho aur secret file nahi hai toh yahan apni asli key daal sakta hai testing ke liye
+        genai.configure(api_key="APNI_ASLI_GEMINI_API_KEY_YAHAN_DAL_DE")
+except Exception:
+    genai.configure(api_key="APNI_ASLI_GEMINI_API_KEY_YAHAN_DAL_DE")
 DATA_FILE = "smart_revision_web.json" 
 
 def load_data():
@@ -140,46 +148,42 @@ ai_topic = st.text_input(
 )
 
 if st.button("Generate Aasan AI Quiz ⚡"):
-  if ai_topic:
-  
-        with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
-      
-            # Fixed model name to avoid 404 error
-            model = genai.GenerativeModel("gemini-pro")
-        
-        prompt = f"""
-        You are an expert board exam teacher for Indian 10th and 12th students.
-        Subject: {ai_subject}
-        Topic/Chapter: {ai_topic}
-        
-        Create 1 high-quality Multiple Choice Question (MCQ) in Aasan Hinglish. 
-        If the topic is a story or literature chapter (like Panchlite, Prose, Poetry), make sure the question is about the story plot, characters, theme, or author—DO NOT ask formulas or numericals.
-        If the topic is Science or Math, make sure it tests concepts or formulas.
-        
-        Format your response cleanly like this:
-        **Q1: [Sawall Hinglish mein]**
-        A) [Option A]
-        B) [Option B]
-        C) [Option C]
-        D) [Option D]
-        
-        **Sahi Jawab:** [Correct Option]
-        **Explanation:** [Aasan Hinglish mein chhota sa explanation]
-        """
-try:
-    with st.spinner("AI aasan Hinglish sawal bana raha hai, bas 2 second..."):
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(prompt)
-    
-    st.success(f"'{ai_topic}' ({ai_subject}) ke liye sawal taiyar hai!")
-    st.markdown("---")
-    st.markdown(response.text)
-    
-    st.download_button(
-        label="DownLoad Quiz as Text File",
-        data=response.text,
-        file_name=f"{ai_subject}_{ai_topic}_quiz.txt",
-        mime="text/plain",
-    )
-except Exception as e:
-    st.error(f"Kuch gadbad ho gayi: {e}")
+    if ai_topic:
+        try:
+            with st.spinner("AI aasan Hinglish sawal taiyyar kar raha hai..."):
+                model = genai.GenerativeModel("gemini-pro")
+                
+                prompt = f"""
+You are an expert board exam teacher for Indian 10th and 12th students.
+Subject: {ai_subject}
+Topic/Chapter: {ai_topic}
+
+Create 1 high-quality Multiple Choice Question (MCQ) in Aasan Hinglish.
+If the topic is a story or literature chapter (like Panchlite, Prose, Poetry), make sure the question is about the story plot, character, or theme.
+If the topic is Science or Math, make sure it tests concepts or formulas.
+
+Format your response cleanly like this:
+**Q1: [Sawall Hinglish mein]**
+A) [Option A]
+B) [Option B]
+C) [Option C]
+D) [Option D]
+
+**Sahi Jawab:** [Correct Option]
+**Explanation:** [Aasan Hinglish mein chhota sa explanation]
+"""
+                
+                response = model.generate_content(prompt)
+            
+            st.success(f"'{ai_topic}' ({ai_subject}) ke liye sawal taiyar hai!")
+            st.markdown("---")
+            st.markdown(response.text)
+            
+            st.download_button(
+                label="DownLoad Quiz as Text File",
+                data=response.text,
+                file_name=f"{ai_subject}_{ai_topic}_quiz.txt",
+                mime="text/plain",
+            )
+        except Exception as e:
+            st.error(f"Kuch gadbad ho gayi: {e}")
