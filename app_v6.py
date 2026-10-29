@@ -152,17 +152,15 @@ else:
     # --- MAIN APP AFTER LOGIN ---
     st.sidebar.title(f"👤 User: {st.session_state.username}")
     
-    # --- UPDATED NOTIFICATION & REMINDER SETTINGS IN SIDEBAR ---
+    # --- CLEAN NOTIFICATION & REMINDER SETTINGS IN SIDEBAR ---
     st.sidebar.markdown("---")
     st.sidebar.subheader("🔔 Notification & Reminder Settings")
     notif_toggle = st.sidebar.toggle("Enable Revision Alerts", value=True)
     
     if notif_toggle:
-        st.sidebar.success("Alerts Active (App khulte hi reminder milega)")
-        # Yahan reminder time aur sound ka option joda hai
         reminder_time = st.sidebar.time_input("⏰ Daily Reminder Time", value=datetime.strptime("18:00", "%H:%M").time())
         alarm_sound = st.sidebar.selectbox("🔊 Reminder Alert Tone", ["Bell / Chime", "Digital Beep", "Soft Tone"])
-        st.sidebar.info(f"Daily Reminder set: {reminder_time.strftime('%I:%M %p')} ({alarm_sound})")
+        st.sidebar.info(f"Reminder set for {reminder_time.strftime('%I:%M %p')}")
 
     if st.sidebar.button("Logout 🚪"):
         st.session_state.logged_in = False
