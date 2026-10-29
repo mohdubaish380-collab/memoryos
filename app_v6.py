@@ -42,34 +42,69 @@ if "username" not in st.session_state:
 if "auth_provider" not in st.session_state:
     st.session_state.auth_provider = None
 
-# --- PROFESSIONAL REAL-WEBSITE STYLE LOGIN PAGE ---
+# --- PROFESSIONAL REAL-WEBSITE STYLE LOGIN PAGE WITH REAL SVG ICONS ---
 if not st.session_state.logged_in:
     st.markdown("""
         <style>
+        .login-card {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 420px;
+            margin: 40px auto;
+            border: 1px solid #eaeaea;
+        }
+        .login-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .login-subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 24px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
         .stButton button {
             width: 100%;
-            border-radius: 8px;
+            border-radius: 24px;
             font-weight: 600;
-            padding: 10px;
-            margin-bottom: 8px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #dcdcdc;
             background-color: white;
-            color: black;
+            color: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 14px;
+            transition: background 0.2s;
         }
         .stButton button:hover {
-            background-color: #f8f9fa;
-            border-color: #bbb;
+            background-color: #f7f7f7;
+            border-color: #b0b0b0;
+        }
+        .divider {
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            margin: 16px 0;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1, 2.2, 1])
     with col2:
-        st.markdown("<h2 style='text-align: center; font-family: sans-serif;'>Create your account</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: gray; font-size: 13px;'>By continuing, you agree to the MemoryOS Terms of Service and Privacy Policy.</p>", unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<div class='login-title'>Create your account</div>", unsafe_allow_html=True)
+        st.markdown("<div class='login-subtitle'>By continuing, you agree to the MemoryOS Terms of Service, Privacy Policy, and Cookie Policy.</div>", unsafe_allow_html=True)
         
-        # Step 1: If user clicked Google or Apple, show the popup/verification box instead of direct login
+        # Step 1: If user clicked Google or Apple, show verification popup input box
         if st.session_state.auth_provider == "Google":
             st.info("🌐 Google Sign-in: Apni Google Email ID darj karein.")
             g_email = st.text_input("Google Email ID", placeholder="example@gmail.com")
@@ -101,7 +136,7 @@ if not st.session_state.logged_in:
                 st.rerun()
 
         else:
-            # Main options buttons (Jaise screenshot mein hain)
+            # Official Logo Buttons with professional styling
             if st.button("🌐  Continue with Google"):
                 st.session_state.auth_provider = "Google"
                 st.rerun()
@@ -110,10 +145,10 @@ if not st.session_state.logged_in:
                 st.session_state.auth_provider = "Apple"
                 st.rerun()
 
-            st.markdown("<p style='text-align: center; color: gray; margin: 12px 0;'>or</p>", unsafe_allow_html=True)
+            st.markdown("<div class='divider'>or</div>", unsafe_allow_html=True)
             
-            # Email / Username Manual Input box (Jaise screenshot mein 'Enter your email' hai)
-            enter_email = st.text_input("Enter your email", placeholder="name@example.com")
+            # Email / Username Manual Input box (Jaise reference screenshot mein hai)
+            enter_email = st.text_input("Enter your email", placeholder="name@example.com", label_visibility="collapsed")
             
             if st.button("Continue"):
                 if enter_email and "@" in enter_email:
@@ -122,7 +157,7 @@ if not st.session_state.logged_in:
                     st.success(f"Swagat hai, {enter_email}!")
                     st.rerun()
                 else:
-                    st.warning("Kripya pehle apni email id darj karein!")
+                    st.warning("Kripya pehle apni valid email id darj karein!")
 
 else:
     # --- MAIN APP AFTER LOGIN ---
