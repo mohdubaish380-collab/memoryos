@@ -151,7 +151,15 @@ if st.button("Generate Aasan AI Quiz ⚡"):
     if ai_topic:
         try:
             with st.spinner("AI aasan Hinglish sawal taiyyar kar raha hai..."):
-                model = genai.GenerativeModel("gemini-pro")
+                # Automatically find a working model to avoid 404 error
+                available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+                
+                if available_models:
+                    model_name = available_models[0]
+                else:
+                    model_name = "gemini-1.5-flash"
+                    
+                model = genai.GenerativeModel(model_name)
                 
                 prompt = f"""
 You are an expert board exam teacher for Indian 10th and 12th students.
@@ -172,7 +180,6 @@ D) [Option D]
 **Sahi Jawab:** [Correct Option]
 **Explanation:** [Aasan Hinglish mein chhota sa explanation]
 """
-                
                 response = model.generate_content(prompt)
             
             st.success(f"'{ai_topic}' ({ai_subject}) ke liye sawal taiyar hai!")
