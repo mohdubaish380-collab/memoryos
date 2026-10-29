@@ -30,6 +30,15 @@ st.write(
 
 # === YAHAN APNI MASTER API KEY EK BAAR DAAL DE (Bacho ko kabhi nahi dikhegi) ===
 MASTER_API_KEY = "YAHAN_APNI_GEMINI_API_KEY_DAAL_DENA"
+# Streamlit secrets se secure tarike se API key uthana
+try:
+    if "GEMINI_API_KEY" in st.secrets:
+        MASTER_API_KEY = st.secrets["GEMINI_API_KEY"]
+        genai.configure(api_key=MASTER_API_KEY)
+    else:
+        st.error("⚠️ Streamlit Secrets mein 'GEMINI_API_KEY' nahi mili!")
+except Exception as e:
+    st.error(f"API Configuration Error: {e}")
 
 try:
     genai.configure(api_key=MASTER_API_KEY)
