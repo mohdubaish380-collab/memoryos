@@ -167,6 +167,8 @@ if st.button("Generate Aasan AI Quiz ⚡"):
         """
 try:
     with st.spinner("AI aasan Hinglish sawal bana raha hai, bas 2 second..."):
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        
         response = model.generate_content(prompt)
     
     st.success(f"'{ai_topic}' ({ai_subject}) ke liye sawal taiyar hai!")
