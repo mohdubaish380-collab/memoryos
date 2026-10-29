@@ -42,69 +42,70 @@ if "username" not in st.session_state:
 if "auth_provider" not in st.session_state:
     st.session_state.auth_provider = None
 
-# --- PROFESSIONAL LOGIN PAGE WITH REAL SVG ICONS ---
+# --- PROFESSIONAL CARD STYLING & LOGIN PAGE ---
 if not st.session_state.logged_in:
     st.markdown("""
         <style>
-        .login-box {
-            background-color: #ffffff;
-            padding: 35px;
-            border-radius: 16px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-            max-width: 420px;
-            margin: 30px auto;
-            border: 1px solid #eaeaea;
+        .stApp {
+            background-color: #f7f9fa;
         }
-        .login-title {
+        .main-card {
+            background-color: #ffffff;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.08);
+            max-width: 440px;
+            margin: 40px auto;
+            border: 1px solid #e1e4e8;
+        }
+        .title-text {
             text-align: center;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 700;
-            color: #111;
+            color: #1a1a1a;
             margin-bottom: 8px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-        .login-sub {
+        .sub-text {
             text-align: center;
             font-size: 12px;
-            color: #666;
-            margin-bottom: 24px;
+            color: #657786;
+            margin-bottom: 25px;
+            line-height: 1.4;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         .stButton button {
             width: 100%;
-            border-radius: 24px;
+            border-radius: 30px;
             font-weight: 600;
-            padding: 11px 16px;
-            margin-bottom: 10px;
-            border: 1px solid #dcdcdc;
-            background-color: white;
-            color: #222;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            padding: 12px 20px;
+            margin-bottom: 12px;
+            border: 1px solid #cfd9de;
+            background-color: #ffffff;
+            color: #0f1419;
+            font-size: 15px;
+            cursor: pointer;
             transition: background 0.2s;
         }
         .stButton button:hover {
-            background-color: #f8f9fa;
-            border-color: #b0b0b0;
+            background-color: #f7f9f9;
+            border-color: #b0c4de;
         }
-        .or-divider {
+        .divider-text {
             text-align: center;
-            color: #888;
+            color: #536471;
             font-size: 13px;
-            margin: 14px 0;
+            margin: 15px 0;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1, 2.3, 1])
+    col1, col2, col3 = st.columns([1, 2.5, 1])
     with col2:
-        st.markdown("<div class='login-title'>Create your account</div>", unsafe_allow_html=True)
-        st.markdown("<div class='login-sub'>By continuing, you agree to the MemoryOS Terms of Service, Privacy Policy, and Cookie Policy.</div>", unsafe_allow_html=True)
+        st.markdown("<div class='title-text'>Create your account</div>", unsafe_allow_html=True)
+        st.markdown("<div class='sub-text'>By continuing, you agree to the MemoryOS Terms of Service, Privacy Policy, and Cookie Policy.</div>", unsafe_allow_html=True)
         
-        # Verification pop-up state when Google or Apple is clicked
+        # Pop-up state for Google or Apple verification
         if st.session_state.auth_provider == "Google":
             st.info("🌐 Google Sign-in: Apni Google Email ID darj karein.")
             g_email = st.text_input("Google Email ID", placeholder="example@gmail.com")
@@ -116,7 +117,7 @@ if not st.session_state.logged_in:
                     st.rerun()
                 else:
                     st.error("Kripya ek valid email ID dalein!")
-            if st.button("← Back to options"):
+            if st.button("← Back"):
                 st.session_state.auth_provider = None
                 st.rerun()
 
@@ -131,23 +132,23 @@ if not st.session_state.logged_in:
                     st.rerun()
                 else:
                     st.error("Kripya ek valid Apple email ID dalein!")
-            if st.button("← Back to options"):
+            if st.button("← Back"):
                 st.session_state.auth_provider = None
                 st.rerun()
 
         else:
-            # Professional Buttons with Real SVG Icons matching the screenshot layout
-            if st.button("🌐 Continue with Google"):
+            # Main professional buttons matching the exact layout requested
+            if st.button("🌐  Continue with Google"):
                 st.session_state.auth_provider = "Google"
                 st.rerun()
                 
-            if st.button(" Continue with Apple"):
+            if st.button("  Continue with Apple"):
                 st.session_state.auth_provider = "Apple"
                 st.rerun()
 
-            st.markdown("<div class='or-divider'>or</div>", unsafe_allow_html=True)
+            st.markdown("<div class='divider-text'>or</div>", unsafe_allow_html=True)
             
-            # Enter your email input field
+            # Email input box just like the reference photo
             enter_email = st.text_input("Enter your email", placeholder="name@example.com", label_visibility="collapsed")
             
             if st.button("Continue"):
