@@ -40,36 +40,59 @@ if "logged_in" not in st.session_state:
 if "username" not in st.session_state:
     st.session_state.username = ""
 
-# --- PROFESSIONAL SINGLE-PAGE LOGIN SCREEN ---
+# --- PROFESSIONAL STYLING & LOGIN PAGE ---
 if not st.session_state.logged_in:
-    st.markdown("<br>", unsafe_allow_html=True)
-    
+    st.markdown("""
+        <style>
+        .login-container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+        }
+        .stButton button {
+            width: 100%;
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            background-color: white;
+            color: black;
+        }
+        .stButton button:hover {
+            background-color: #f8f9fa;
+            border-color: #ccc;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown("<h2 style='text-align: center;'>Create your account</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: gray; font-size: 14px;'>By continuing, you agree to the MemoryOS Terms of Service and Privacy Policy.</p>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; font-family: sans-serif;'>Create your account</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: gray; font-size: 13px;'>By continuing, you agree to the MemoryOS Terms of Service and Privacy Policy.</p>", unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # Professional Social & Single Sign-On Buttons
-        if st.button("🔴  Sign up with Google", use_container_width=True):
+        # Professional Google Sign-in Button with SVG/Icon look
+        if st.button("🌐  Sign up with Google"):
             st.session_state.logged_in = True
             st.session_state.username = "Google User"
             st.success("Google ke sath successfully login ho gaya!")
             st.rerun()
             
-        if st.button("🍏  Sign up with Apple", use_container_width=True):
+        # Professional Apple Sign-in Button with Apple Logo styling
+        if st.button("  Sign up with Apple"):
             st.session_state.logged_in = True
             st.session_state.username = "Apple User"
             st.success("Apple ID ke sath successfully login ho gaya!")
             st.rerun()
 
-        st.markdown("<p style='text-align: center; color: gray;'>OR</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: gray; margin: 15px 0;'>or</p>", unsafe_allow_html=True)
         
-        # Email / Username Manual Login Form on the same page
+        # Email / Username Manual Login Form
         input_user = st.text_input("Username or Email", placeholder="Enter your email or username")
         input_pass = st.text_input("Password", type="password", placeholder="Enter your password")
         
-        if st.button("📧  Sign up / Log in with Email", use_container_width=True):
+        if st.button("📧  Continue with Email"):
             if input_user and input_pass:
                 st.session_state.logged_in = True
                 st.session_state.username = input_user
