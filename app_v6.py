@@ -157,7 +157,7 @@ if st.button("Generate Aasan AI Quiz ⚡"):
                 if available_models:
                     model_name = available_models[0]
                 else:
-                    model_name = "gemini-1.5-flash"
+                    model_name = "gemini-3.8-flash"
                     
                 model = genai.GenerativeModel(model_name)
                 
