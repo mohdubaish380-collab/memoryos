@@ -140,10 +140,11 @@ ai_topic = st.text_input(
 
 if st.button("Generate Aasan AI Quiz ⚡"):
   if ai_topic:
-    with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
-      try:
-        # Fixed model name to avoid 404 error
-        model = genai.GenerativeModel("gemini-1.5-flash")
+  
+        with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
+      
+            # Fixed model name to avoid 404 error
+            model = genai.GenerativeModel("gemini-1.5-flash")
         
         prompt = f"""
         You are an expert board exam teacher for Indian 10th and 12th students.
@@ -164,13 +165,19 @@ if st.button("Generate Aasan AI Quiz ⚡"):
         **Sahi Jawab:** [Correct Option]
         **Explanation:** [Aasan Hinglish mein chhota sa explanation]
         """
-        
+try:
+    with st.spinner("AI aasan Hinglish sawal bana raha hai, bas 2 second..."):
         response = model.generate_content(prompt)
-        st.success(f"'{ai_topic}' ({ai_subject}) ke liye sawal taiyar hai!")
-        st.markdown("---")
-        st.markdown(response.text)
-        
-      except Exception as e:
-        st.error(f"Kuch gadbad ho gayi: {e}")
-  else:
-    st.warning("Kripya chapter ya topic ka naam darj karein!")
+    
+    st.success(f"'{ai_topic}' ({ai_subject}) ke liye sawal taiyar hai!")
+    st.markdown("---")
+    st.markdown(response.text)
+    
+    st.download_button(
+        label="DownLoad Quiz as Text File",
+        data=response.text,
+        file_name=f"{ai_subject}_{ai_topic}_quiz.txt",
+        mime="text/plain",
+    )
+except Exception as e:
+    st.error(f"Kuch gadbad ho gayi: {e}")
