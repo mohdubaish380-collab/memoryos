@@ -42,21 +42,12 @@ if "username" not in st.session_state:
 if "auth_provider" not in st.session_state:
     st.session_state.auth_provider = None
 
-# --- PROFESSIONAL CARD STYLING & LOGIN PAGE ---
+# --- PROFESSIONAL LOGIN PAGE ---
 if not st.session_state.logged_in:
     st.markdown("""
         <style>
         .stApp {
             background-color: #f7f9fa;
-        }
-        .main-card {
-            background-color: #ffffff;
-            padding: 40px 30px;
-            border-radius: 20px;
-            box-shadow: 0 6px 25px rgba(0,0,0,0.08);
-            max-width: 440px;
-            margin: 40px auto;
-            border: 1px solid #e1e4e8;
         }
         .title-text {
             text-align: center;
@@ -105,7 +96,6 @@ if not st.session_state.logged_in:
         st.markdown("<div class='title-text'>Create your account</div>", unsafe_allow_html=True)
         st.markdown("<div class='sub-text'>By continuing, you agree to the MemoryOS Terms of Service, Privacy Policy, and Cookie Policy.</div>", unsafe_allow_html=True)
         
-        # Pop-up state for Google or Apple verification
         if st.session_state.auth_provider == "Google":
             st.info("🌐 Google Sign-in: Apni Google Email ID darj karein.")
             g_email = st.text_input("Google Email ID", placeholder="example@gmail.com")
@@ -137,7 +127,6 @@ if not st.session_state.logged_in:
                 st.rerun()
 
         else:
-            # Main professional buttons matching the exact layout requested
             if st.button("🌐  Continue with Google"):
                 st.session_state.auth_provider = "Google"
                 st.rerun()
@@ -148,7 +137,6 @@ if not st.session_state.logged_in:
 
             st.markdown("<div class='divider-text'>or</div>", unsafe_allow_html=True)
             
-            # Email input box just like the reference photo
             enter_email = st.text_input("Enter your email", placeholder="name@example.com", label_visibility="collapsed")
             
             if st.button("Continue"):
@@ -163,6 +151,14 @@ if not st.session_state.logged_in:
 else:
     # --- MAIN APP AFTER LOGIN ---
     st.sidebar.title(f"👤 User: {st.session_state.username}")
+    
+    # Notification Settings in Sidebar
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("🔔 Notification Settings")
+    notif_toggle = st.sidebar.toggle("Enable Revision Alerts", value=True)
+    if notif_toggle:
+        st.sidebar.success("Alerts Active (App khulte hi reminder milega)")
+
     if st.sidebar.button("Logout 🚪"):
         st.session_state.logged_in = False
         st.session_state.username = ""
@@ -174,7 +170,7 @@ else:
         "10th & 12th ke bacho ke liye Smart Revision & Aasan Hinglish AI Quiz System"
     )
 
-    # --- NOTIFICATION SYSTEM ALERT BOX ---
+    # --- URGENT NOTIFICATION & REVISION ALERT SYSTEM ---
     today = datetime.now().date()
     due_topics_check = []
     for item in app_data.get("topics", []):
@@ -186,8 +182,15 @@ else:
             if today >= due_date or item["last_date"] == datetime.now().strftime("%Y-%m-%d"):
                 due_topics_check.append(item)
 
-    if due_topics_check:
-        st.warning(f"🔔 **Notification Alert:** Aapke paas aaj ke liye {len(due_topics_check)} pending revisions hain! Revision karna na bhoolein!")
+    if notif_toggle and due_topics_check:
+        st.markdown(f"""
+            <div style="background-color: #fff3cd; border-left: 6px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                <h4 style="margin: 0; color: #856404;">🚨 Revision Time Alert!</h4>
+                <p style="margin: 5px 0 0 0; color: #856404; font-size: 14px;">
+                    Aapke paas aaj ke liye <b>{len(due_topics_check)} pending chapters</b> hain jinka revision ka samay ho gaya hai. Abhi revise karein aur apna streak bachayein!
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
 
     # 1. Dashboard & Revision Section
     st.subheader("📚 Naya Chapter Add Karein")
