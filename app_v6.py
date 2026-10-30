@@ -3,9 +3,18 @@ import json
 import os
 import streamlit as st
 import google.generativeai as genai
+from dotenv import load_dotenv
+# Yeh laptop par .env file se key utha lega aur Cloud par hoga toh wahan ke secrets utha lega
+load_dotenv()
+
+try:
+    api_key = os.getenv("GEMINI_API_KEY") or st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
+except:
+    pass
 
 DATA_FILE = "smart_revision_web.json"
-
+ 
 def load_data():
   if not os.path.exists(DATA_FILE):
     return {"topics": [], "streak": 0, "last_active": "", "users": []}
@@ -25,10 +34,12 @@ st.set_page_config(
 
 # --- DIRECT API KEY CONFIGURATION ---
 # Yahan apani asli API key double quotes ke andar daal de bhai:
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-
+try:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+except:
+   genai.configure(api_key="YAHAN_API_KEY_DALEIN")
 app_data = load_data()
-
+  
 # --- SESSION STATE FOR LOGIN ---
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
