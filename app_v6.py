@@ -23,14 +23,9 @@ st.set_page_config(
     page_title="MemoryOS - Board Exam Startup", page_icon="🧠", layout="centered"
 )
 
-# --- SECURE API KEY CONFIGURATION ---
-try:
-    if "GEMINI_API_KEY" in st.secrets:
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    else:
-        genai.configure(api_key="YAHAN_APNI_GEMINI_API_KEY_DAAL_DENA")
-except Exception:
-    pass
+# --- DIRECT API KEY CONFIGURATION ---
+# Yahan apani asli API key double quotes ke andar daal de bhai:
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 app_data = load_data()
 
@@ -152,7 +147,7 @@ else:
     # --- MAIN APP AFTER LOGIN ---
     st.sidebar.title(f"👤 User: {st.session_state.username}")
     
-    # --- CLEAN NOTIFICATION & REMINDER SETTINGS IN SIDEBAR ---
+    # --- REMINDER SETTINGS IN SIDEBAR ---
     st.sidebar.markdown("---")
     st.sidebar.subheader("🔔 Notification & Reminder Settings")
     notif_toggle = st.sidebar.toggle("Enable Revision Alerts", value=True)
@@ -299,7 +294,7 @@ else:
       if ai_topic:
         with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
           try:
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            model = genai.GenerativeModel("gemini-3.8-flash")
             
             prompt = f"""
             You are an expert board exam teacher for Indian 10th and 12th students.
@@ -327,6 +322,6 @@ else:
             st.markdown(response.text)
             
           except Exception as e:
-            st.error(f"Kuch gadbad ho gayi: {e}")
+            st.error(f"AI Generation Error: {e}")
       else:
         st.warning("Kripya chapter ya topic ka naam darj karein!")
