@@ -346,7 +346,7 @@ else:
       if ai_topic:
         with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
           try:
-            model = genai.GenerativeModel("gemini-1.5-flash-latest")
+            model = genai.GenerativeModel("gemini-3.8-flash")
             
             prompt = f"""
             You are an expert board exam teacher for Indian 10th and 12th students.
