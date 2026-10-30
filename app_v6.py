@@ -4,7 +4,6 @@ import os
 import streamlit as st
 import google.generativeai as genai
 from dotenv import load_dotenv
-
 # Yeh laptop par .env file se key utha lega aur Cloud par hoga toh wahan ke secrets utha lega
 load_dotenv()
 
@@ -34,28 +33,18 @@ st.set_page_config(
 )
 
 # --- DIRECT API KEY CONFIGURATION ---
+# Yahan apani asli API key double quotes ke andar daal de bhai:
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 except:
-   try:
-       genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-   except:
-       pass
-
+   genai.configure(api_key="YAHAN_API_KEY_DALEIN")
 app_data = load_data()
   
-# --- SESSION STATE & PERSISTENT LOGIN VIA QUERY PARAMS ---
+# --- SESSION STATE FOR LOGIN ---
 if "logged_in" not in st.session_state:
-    saved_user = st.query_params.get("user", "")
-    if saved_user:
-        st.session_state.logged_in = True
-        st.session_state.username = saved_user
-    else:
-        st.session_state.logged_in = False
-
+    st.session_state.logged_in = False
 if "username" not in st.session_state:
-    st.session_state.username = st.query_params.get("user", "")
-
+    st.session_state.username = ""
 if "auth_provider" not in st.session_state:
     st.session_state.auth_provider = None
 
@@ -120,7 +109,6 @@ if not st.session_state.logged_in:
                 if g_email and "@" in g_email:
                     st.session_state.logged_in = True
                     st.session_state.username = g_email
-                    st.query_params["user"] = g_email
                     st.success("Google account verified successfully!")
                     st.rerun()
                 else:
@@ -136,7 +124,6 @@ if not st.session_state.logged_in:
                 if a_email and "@" in a_email:
                     st.session_state.logged_in = True
                     st.session_state.username = a_email
-                    st.query_params["user"] = a_email
                     st.success("Apple ID verified successfully!")
                     st.rerun()
                 else:
@@ -162,25 +149,14 @@ if not st.session_state.logged_in:
                 if enter_email and "@" in enter_email:
                     st.session_state.logged_in = True
                     st.session_state.username = enter_email
-                    st.query_params["user"] = enter_email
                     st.success(f"Swagat hai, {enter_email}!")
                     st.rerun()
                 else:
                     st.warning("Kripya pehle apni valid email id darj karein!")
 
 else:
-    # --- SIDEBAR FIX FOR LONG EMAIL (WORD WRAP) ---
-    st.markdown("""
-        <style>
-        [data-testid="stSidebar"] {
-            word-break: break-word;
-            overflow-wrap: break-word;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
     # --- MAIN APP AFTER LOGIN ---
-    st.sidebar.title(f"👤 User:\n{st.session_state.username}")
+    st.sidebar.title(f"👤 User: {st.session_state.username}")
     
     # --- REMINDER SETTINGS IN SIDEBAR ---
     st.sidebar.markdown("---")
@@ -196,8 +172,6 @@ else:
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.session_state.auth_provider = None
-        if "user" in st.query_params:
-            del st.query_params["user"]
         st.rerun()
 
     st.title("🧠 MemoryOS: Board Exam Spaced Repetition + AI")
@@ -205,38 +179,26 @@ else:
         "10th & 12th ke bacho ke liye Smart Revision & Aasan Hinglish AI Quiz System"
     )
 
-    # --- URGENT NOTIFICATION & REVISION ALERT SYSTEM WITH HTML AUDIO ALARM ---
+    # --- URGENT NOTIFICATION & REVISION ALERT SYSTEM ---
     today = datetime.now().date()
     due_topics_check = []
     for item in app_data.get("topics", []):
-        try:
-            last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
-            stage = item["stage"]
-            intervals = item["intervals"]
-            if stage < len(intervals):
-                due_date = last_date + timedelta(days=intervals[stage])
-                if today >= due_date or item["last_date"] == datetime.now().strftime("%Y-%m-%d"):
-                    due_topics_check.append(item)
-        except:
-            pass
+        last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
+        stage = item["stage"]
+        intervals = item["intervals"]
+        if stage < len(intervals):
+            due_date = last_date + timedelta(days=intervals[stage])
+            if today >= due_date or item["last_date"] == datetime.now().strftime("%Y-%m-%d"):
+                due_topics_check.append(item)
 
     if notif_toggle and due_topics_check:
         st.markdown(f"""
             <div style="background-color: #fff3cd; border-left: 6px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
                 <h4 style="margin: 0; color: #856404;">🚨 Revision Time Alert!</h4>
                 <p style="margin: 5px 0 0 0; color: #856404; font-size: 14px;">
-                    Aapke paas aaj ke liye <b>{len(due_topics_check)} pending chapters</b> hain jinka revision ka samay ho gaya hai. Neeche alarm play karein aur revise karein!
+                    Aapke paas aaj ke liye <b>{len(due_topics_check)} pending chapters</b> hain jinka revision ka samay ho gaya hai. Abhi revise karein aur apna streak bachayein!
                 </p>
             </div>
-        """, unsafe_allow_html=True)
-        
-        # HTML5 Audio Ringtone/Alarm embedded directly for reliable browser playback
-        st.markdown("""
-            <audio autoplay loop controls>
-              <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
-              Your browser does not support the audio element.
-            </audio>
-            <p style="font-size:11px; color:#666;">(Agar alarm auto-play na ho toh upar play button dabayein 🔔)</p>
         """, unsafe_allow_html=True)
 
     # 1. Dashboard & Revision Section
@@ -278,24 +240,21 @@ else:
       due_topics = []
 
       for index, item in enumerate(app_data["topics"]):
-        try:
-          last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
-          stage = item["stage"]
-          intervals = item["intervals"]
+        last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
+        stage = item["stage"]
+        intervals = item["intervals"]
 
-          if stage < len(intervals):
-            next_due_days = intervals[stage]
-            due_date = last_date + timedelta(days=next_due_days)
-          else:
-            due_date = last_date
+        if stage < len(intervals):
+          next_due_days = intervals[stage]
+          due_date = last_date + timedelta(days=next_due_days)
+        else:
+          due_date = last_date
 
-          if stage < len(intervals) and (
-              today >= due_date
-              or item["last_date"] == datetime.now().strftime("%Y-%m-%d")
-          ):
-            due_topics.append((index, item))
-        except:
-          pass
+        if stage < len(intervals) and (
+            today >= due_date
+            or item["last_date"] == datetime.now().strftime("%Y-%m-%d")
+        ):
+          due_topics.append((index, item))
 
       st.metric(
           label="🔥 Current Streak", value=f"{app_data.get('streak', 0)} Days"
@@ -346,7 +305,7 @@ else:
       if ai_topic:
         with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
           try:
-            model = genai.GenerativeModel("gemini-1.5-flash-latest")
+            model = genai.GenerativeModel("gemini-3.8-flash")
             
             prompt = f"""
             You are an expert board exam teacher for Indian 10th and 12th students.
