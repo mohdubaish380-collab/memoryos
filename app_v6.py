@@ -4,7 +4,7 @@ import os
 import streamlit as st
 import google.generativeai as genai
 from dotenv import load_dotenv
-# Yeh laptop par .env file se key utha lega aur Cloud par hoga toh wahan ke secrets utha lega
+
 load_dotenv()
 
 try:
@@ -17,12 +17,15 @@ DATA_FILE = "smart_revision_web.json"
  
 def load_data():
   if not os.path.exists(DATA_FILE):
-    return {"topics": [], "streak": 0, "last_active": "", "users": []}
+    return {"topics": [], "streak": 0, "last_active": "", "users": [], "history": []}
   try:
     with open(DATA_FILE, "r") as f:
-      return json.load(f)
+      data = json.load(f)
+      if "history" not in data:
+          data["history"] = []
+      return data
   except:
-    return {"topics": [], "streak": 0, "last_active": "", "users": []}
+    return {"topics": [], "streak": 0, "last_active": "", "users": [], "history": []}
 
 def save_data(data):
   with open(DATA_FILE, "w") as f:
@@ -33,18 +36,28 @@ st.set_page_config(
 )
 
 # --- DIRECT API KEY CONFIGURATION ---
-# Yahan apani asli API key double quotes ke andar daal de bhai:
 try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 except:
-   genai.configure(api_key="YAHAN_API_KEY_DALEIN")
+   try:
+       genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+   except:
+       pass
+
 app_data = load_data()
   
-# --- SESSION STATE FOR LOGIN ---
+# --- SESSION STATE & PERSISTENT LOGIN VIA QUERY PARAMS ---
 if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+    saved_user = st.query_params.get("user", "")
+    if saved_user:
+        st.session_state.logged_in = True
+        st.session_state.username = saved_user
+    else:
+        st.session_state.logged_in = False
+
 if "username" not in st.session_state:
-    st.session_state.username = ""
+    st.session_state.username = st.query_params.get("user", "")
+
 if "auth_provider" not in st.session_state:
     st.session_state.auth_provider = None
 
@@ -109,6 +122,7 @@ if not st.session_state.logged_in:
                 if g_email and "@" in g_email:
                     st.session_state.logged_in = True
                     st.session_state.username = g_email
+                    st.query_params["user"] = g_email
                     st.success("Google account verified successfully!")
                     st.rerun()
                 else:
@@ -124,6 +138,7 @@ if not st.session_state.logged_in:
                 if a_email and "@" in a_email:
                     st.session_state.logged_in = True
                     st.session_state.username = a_email
+                    st.query_params["user"] = a_email
                     st.success("Apple ID verified successfully!")
                     st.rerun()
                 else:
@@ -149,14 +164,25 @@ if not st.session_state.logged_in:
                 if enter_email and "@" in enter_email:
                     st.session_state.logged_in = True
                     st.session_state.username = enter_email
+                    st.query_params["user"] = enter_email
                     st.success(f"Swagat hai, {enter_email}!")
                     st.rerun()
                 else:
                     st.warning("Kripya pehle apni valid email id darj karein!")
 
 else:
+    # --- SIDEBAR FIX FOR LONG EMAIL (WORD WRAP) ---
+    st.markdown("""
+        <style>
+        [data-testid="stSidebar"] {
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     # --- MAIN APP AFTER LOGIN ---
-    st.sidebar.title(f"👤 User: {st.session_state.username}")
+    st.sidebar.title(f"👤 User:\n{st.session_state.username}")
     
     # --- REMINDER SETTINGS IN SIDEBAR ---
     st.sidebar.markdown("---")
@@ -172,6 +198,8 @@ else:
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.session_state.auth_provider = None
+        if "user" in st.query_params:
+            del st.query_params["user"]
         st.rerun()
 
     st.title("🧠 MemoryOS: Board Exam Spaced Repetition + AI")
@@ -179,26 +207,37 @@ else:
         "10th & 12th ke bacho ke liye Smart Revision & Aasan Hinglish AI Quiz System"
     )
 
-    # --- URGENT NOTIFICATION & REVISION ALERT SYSTEM ---
+    # --- URGENT NOTIFICATION & REVISION ALERT SYSTEM WITH HTML AUDIO ALARM ---
     today = datetime.now().date()
     due_topics_check = []
     for item in app_data.get("topics", []):
-        last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
-        stage = item["stage"]
-        intervals = item["intervals"]
-        if stage < len(intervals):
-            due_date = last_date + timedelta(days=intervals[stage])
-            if today >= due_date or item["last_date"] == datetime.now().strftime("%Y-%m-%d"):
-                due_topics_check.append(item)
+        try:
+            last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
+            stage = item["stage"]
+            intervals = item["intervals"]
+            if stage < len(intervals):
+                due_date = last_date + timedelta(days=intervals[stage])
+                if today >= due_date or item["last_date"] == datetime.now().strftime("%Y-%m-%d"):
+                    due_topics_check.append(item)
+        except:
+            pass
 
     if notif_toggle and due_topics_check:
         st.markdown(f"""
             <div style="background-color: #fff3cd; border-left: 6px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
                 <h4 style="margin: 0; color: #856404;">🚨 Revision Time Alert!</h4>
                 <p style="margin: 5px 0 0 0; color: #856404; font-size: 14px;">
-                    Aapke paas aaj ke liye <b>{len(due_topics_check)} pending chapters</b> hain jinka revision ka samay ho gaya hai. Abhi revise karein aur apna streak bachayein!
+                    Aapke paas aaj ke liye <b>{len(due_topics_check)} pending chapters</b> hain jinka revision ka samay ho gaya hai. Neeche alarm play karein aur revise karein!
                 </p>
             </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+            <audio autoplay loop controls>
+              <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+              Your browser does not support the audio element.
+            </audio>
+            <p style="font-size:11px; color:#666;">(Agar alarm auto-play na ho toh upar play button dabayein 🔔)</p>
         """, unsafe_allow_html=True)
 
     # 1. Dashboard & Revision Section
@@ -228,6 +267,7 @@ else:
         app_data["topics"].append(new_item)
         save_data(app_data)
         st.success(f"'{full_topic_title}' ({subject}) successfully save ho gaya!")
+        st.rerun()
 
     st.markdown("---")
     st.subheader("📊 Your Dashboard & Due Revisions")
@@ -240,21 +280,24 @@ else:
       due_topics = []
 
       for index, item in enumerate(app_data["topics"]):
-        last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
-        stage = item["stage"]
-        intervals = item["intervals"]
+        try:
+          last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
+          stage = item["stage"]
+          intervals = item["intervals"]
 
-        if stage < len(intervals):
-          next_due_days = intervals[stage]
-          due_date = last_date + timedelta(days=next_due_days)
-        else:
-          due_date = last_date
+          if stage < len(intervals):
+            next_due_days = intervals[stage]
+            due_date = last_date + timedelta(days=next_due_days)
+          else:
+            due_date = last_date
 
-        if stage < len(intervals) and (
-            today >= due_date
-            or item["last_date"] == datetime.now().strftime("%Y-%m-%d")
-        ):
-          due_topics.append((index, item))
+          if stage < len(intervals) and (
+              today >= due_date
+              or item["last_date"] == datetime.now().strftime("%Y-%m-%d")
+          ):
+            due_topics.append((index, item))
+        except:
+          pass
 
       st.metric(
           label="🔥 Current Streak", value=f"{app_data.get('streak', 0)} Days"
@@ -271,6 +314,13 @@ else:
             app_data["topics"][idx]["last_date"] = today_str
             app_data["topics"][idx]["stage"] += 1
 
+            if "history" not in app_data:
+                app_data["history"] = []
+            app_data["history"].append({
+                "date": today_str,
+                "action": f"Revised: {item['subject']} - {item['topic']}"
+            })
+
             last_active = app_data.get("last_active", "")
             if last_active != today_str:
               app_data["streak"] = app_data.get("streak", 0) + 1
@@ -280,15 +330,25 @@ else:
             st.success("Revision Done! Streak updated! 🎉")
             st.rerun()
 
-      st.markdown("### 📚 All Saved Chapters")
-      for item in app_data["topics"]:
-        st.write(
-            f"- **{item['subject']}** | {item['topic']} | Last Studied: {item['last_date']}"
-        )
+      st.markdown("### 📚 All Saved Chapters & Management")
+      for index, item in enumerate(app_data["topics"]):
+        c1, c2 = st.columns([4, 1])
+        c1.write(f"- **{item['subject']}** | {item['topic']} | Last Studied: {item['last_date']} (Stage: {item['stage']})")
+        if c2.button("🗑️ Delete", key=f"del_{index}"):
+            deleted = app_data["topics"].pop(index)
+            save_data(app_data)
+            st.warning(f"'{deleted['topic']}' delete ho gaya!")
+            st.rerun()
+
+      if app_data.get("history"):
+          st.markdown("---")
+          st.markdown("### 📜 Recent Revision History")
+          for h in reversed(app_data["history"][-5:]):
+              st.write(f"✅ `[{h['date']}]` {h['action']}")
 
     st.markdown("---")
 
-    # 2. AI Quiz Generator Section
+    # 2. AI Quiz Generator Section (Using standard stable gemini-1.5-flash)
     st.subheader("🤖 AI Instant Quiz & Practice Generator (Aasan Bhasha)")
 
     ai_subject = st.selectbox(
@@ -305,7 +365,7 @@ else:
       if ai_topic:
         with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
           try:
-            model = genai.GenerativeModel("gemini-3.8-flash-astre")
+            model = genai.GenerativeModel("gemini-3.8-flash")
             
             prompt = f"""
             You are an expert board exam teacher for Indian 10th and 12th students.
