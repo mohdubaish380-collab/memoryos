@@ -17,15 +17,17 @@ DATA_FILE = "smart_revision_web.json"
  
 def load_data():
   if not os.path.exists(DATA_FILE):
-    return {"topics": [], "streak": 0, "last_active": "", "users": [], "history": []}
+    return {"topics": [], "streak": 0, "last_active": "", "users": [], "history": [], "daily_goal": 3}
   try:
     with open(DATA_FILE, "r") as f:
       data = json.load(f)
       if "history" not in data:
           data["history"] = []
+      if "daily_goal" not in data:
+          data["daily_goal"] = 3
       return data
   except:
-    return {"topics": [], "streak": 0, "last_active": "", "users": [], "history": []}
+    return {"topics": [], "streak": 0, "last_active": "", "users": [], "history": [], "daily_goal": 3}
 
 def save_data(data):
   with open(DATA_FILE, "w") as f:
@@ -60,6 +62,9 @@ if "username" not in st.session_state:
 
 if "auth_provider" not in st.session_state:
     st.session_state.auth_provider = None
+
+if "dismiss_alarm" not in st.session_state:
+    st.session_state.dismiss_alarm = False
 
 # --- PROFESSIONAL LOGIN PAGE ---
 if not st.session_state.logged_in:
@@ -184,15 +189,19 @@ else:
     # --- MAIN APP AFTER LOGIN ---
     st.sidebar.title(f"👤 User:\n{st.session_state.username}")
     
-    # --- REMINDER SETTINGS IN SIDEBAR ---
+    # --- REMINDER & GOAL SETTINGS IN SIDEBAR ---
     st.sidebar.markdown("---")
-    st.sidebar.subheader("🔔 Notification & Reminder Settings")
+    st.sidebar.subheader("🔔 Notification & Targets")
     notif_toggle = st.sidebar.toggle("Enable Revision Alerts", value=True)
     
     if notif_toggle:
         reminder_time = st.sidebar.time_input("⏰ Daily Reminder Time", value=datetime.strptime("18:00", "%H:%M").time())
-        alarm_sound = st.sidebar.selectbox("🔊 Reminder Alert Tone", ["Bell / Chime", "Digital Beep", "Soft Tone"])
         st.sidebar.info(f"Reminder set for {reminder_time.strftime('%I:%M %p')}")
+
+    daily_target_input = st.sidebar.slider("🎯 Daily Revision Target (Chapters)", min_value=1, max_value=10, value=app_data.get("daily_goal", 3))
+    if daily_target_input != app_data.get("daily_goal", 3):
+        app_data["daily_goal"] = daily_target_input
+        save_data(app_data)
 
     if st.sidebar.button("Logout 🚪"):
         st.session_state.logged_in = False
@@ -207,7 +216,7 @@ else:
         "10th & 12th ke bacho ke liye Smart Revision & Aasan Hinglish AI Quiz System"
     )
 
-    # --- URGENT NOTIFICATION & REVISION ALERT SYSTEM WITH HTML AUDIO ALARM ---
+    # --- URGENT NOTIFICATION & REVISION ALERT SYSTEM WITH DISMISS BUTTON ---
     today = datetime.now().date()
     due_topics_check = []
     for item in app_data.get("topics", []):
@@ -222,9 +231,9 @@ else:
         except:
             pass
 
-    if notif_toggle and due_topics_check:
+    if notif_toggle and due_topics_check and not st.session_state.dismiss_alarm:
         st.markdown(f"""
-            <div style="background-color: #fff3cd; border-left: 6px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <div style="background-color: #fff3cd; border-left: 6px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 10px;">
                 <h4 style="margin: 0; color: #856404;">🚨 Revision Time Alert!</h4>
                 <p style="margin: 5px 0 0 0; color: #856404; font-size: 14px;">
                     Aapke paas aaj ke liye <b>{len(due_topics_check)} pending chapters</b> hain jinka revision ka samay ho gaya hai. Neeche alarm play karein aur revise karein!
@@ -237,8 +246,12 @@ else:
               <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
               Your browser does not support the audio element.
             </audio>
-            <p style="font-size:11px; color:#666;">(Agar alarm auto-play na ho toh upar play button dabayein 🔔)</p>
+            <p style="font-size:11px; color:#666; margin-bottom: 5px;">(Agar alarm auto-play na ho toh upar play button dabayein 🔔)</p>
         """, unsafe_allow_html=True)
+
+        if st.button("🔕 Stop Alarm & Dismiss Alert"):
+            st.session_state.dismiss_alarm = True
+            st.rerun()
 
     # 1. Dashboard & Revision Section
     st.subheader("📚 Naya Chapter Add Karein")
@@ -278,6 +291,12 @@ else:
       )
     else:
       due_topics = []
+      today_str_check = datetime.now().strftime("%Y-%m-%d")
+      revised_today_count = 0
+
+      for history_item in app_data.get("history", []):
+          if history_item["date"] == today_str_check and "Revised:" in history_item["action"]:
+              revised_today_count += 1
 
       for index, item in enumerate(app_data["topics"]):
         try:
@@ -299,9 +318,16 @@ else:
         except:
           pass
 
-      st.metric(
-          label="🔥 Current Streak", value=f"{app_data.get('streak', 0)} Days"
-      )
+      # --- DAILY REVISION GOAL & TARGET UI ---
+      target_goal = app_data.get("daily_goal", 3)
+      progress_val = min(revised_today_count / target_goal, 1.0)
+      
+      col_m1, col_m2 = st.columns(2)
+      col_m1.metric(label="🔥 Current Streak", value=f"{app_data.get('streak', 0)} Days")
+      col_m2.metric(label="🎯 Today's Goal Progress", value=f"{revised_today_count} / {target_goal} Done")
+      
+      st.progress(progress_val, text=f"Daily Target Progress: {int(progress_val * 100)}% completed")
+
       st.write(f"⏰ **Pending Revisions Today:** {len(due_topics)}")
 
       if due_topics:
@@ -330,6 +356,25 @@ else:
             st.success("Revision Done! Streak updated! 🎉")
             st.rerun()
 
+      # --- SUBJECT-WISE PROGRESS BARS & ANALYTICS ---
+      st.markdown("### 📈 Subject-wise Syllabus Progress")
+      all_subjects = ["Physics", "Chemistry", "Maths", "Biology", "English", "Social Science"]
+      
+      subject_counts = {sub: {"total": 0, "completed": 0} for sub in all_subjects}
+      for item in app_data["topics"]:
+          sub = item["subject"]
+          if sub in subject_counts:
+              subject_counts[sub]["total"] += 1
+              if item["stage"] >= 2:
+                  subject_counts[sub]["completed"] += 1
+
+      for sub in all_subjects:
+          tot = subject_counts[sub]["total"]
+          comp = subject_counts[sub]["completed"]
+          ratio = (comp / tot) if tot > 0 else 0.0
+          st.write(f"**{sub}** ({comp}/{tot} chapters mastered)")
+          st.progress(ratio)
+
       st.markdown("### 📚 All Saved Chapters & Management")
       for index, item in enumerate(app_data["topics"]):
         c1, c2 = st.columns([4, 1])
@@ -348,7 +393,7 @@ else:
 
     st.markdown("---")
 
-    # 2. AI Quiz Generator Section (Using standard stable gemini-1.5-flash)
+    # 2. AI Quiz Generator Section
     st.subheader("🤖 AI Instant Quiz & Practice Generator (Aasan Bhasha)")
 
     ai_subject = st.selectbox(
@@ -365,7 +410,7 @@ else:
       if ai_topic:
         with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
           try:
-            model = genai.GenerativeModel("gemini-3.8-flash")
+            model = genai.GenerativeModel("gemini-1.5-flash")
             
             prompt = f"""
             You are an expert board exam teacher for Indian 10th and 12th students.
@@ -374,7 +419,7 @@ else:
             
             Create 1 high-quality Multiple Choice Question (MCQ) in Aasan Hinglish. 
             If the topic is a story or literature chapter, make sure the question is about the story plot, characters, theme, or author—DO NOT ask formulas or numericals.
-            If the topic is Science or Math, make sure it tests concepts or formulas.
+            If theTopic is Science or Math, make sure it tests concepts or formulas.
             
             Format your response cleanly like this:
             **Q1: [Sawall Hinglish mein]**
@@ -393,6 +438,6 @@ else:
             st.markdown(response.text)
             
           except Exception as e:
-            st.error(f"AI Generation Error: {e}")
+            st.error(f"AI Generation Error: Bahut zyada requests ki wajah se limit cross ho gayi hai. Kripya 2 minute baad try karein!")
       else:
         st.warning("Kripya chapter ya topic ka naam darj karein!")
