@@ -226,7 +226,7 @@ else:
             intervals = item["intervals"]
             if stage < len(intervals):
                 due_date = last_date + timedelta(days=intervals[stage])
-                if today >= due_date or item["last_date"] == datetime.now().strftime("%Y-%m-%d"):
+                if today >= due_date:
                     due_topics_check.append(item)
         except:
             pass
@@ -312,8 +312,7 @@ else:
 
           if stage < len(intervals) and (
               today >= due_date
-              or item["last_date"] == datetime.now().strftime("%Y-%m-%d")
-          ):
+        ):
             due_topics.append((index, item))
         except:
           pass
