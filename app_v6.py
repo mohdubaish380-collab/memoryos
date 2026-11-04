@@ -42,21 +42,54 @@ def save_data(data):
     print(f"Error saving data: {e}")
 
 st.set_page_config(
-    page_title="MemoryOS - Board Exam Startup", page_icon="🧠", layout="centered"
+    page_title="MemoryOS - Board Exam Prep", page_icon="🧠", layout="wide"
 )
 
-# --- DIRECT API KEY CONFIGURATION ---
-try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-except:
-   try:
-       genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-   except:
-       pass
+# --- PROFESSIONAL UI & BUTTON STYLING (CSS) ---
+st.markdown("""
+    <style>
+    .main {
+        background-color: #f8f9fa;
+    }
+    .custom-card {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e9ecef;
+        margin-bottom: 20px;
+    }
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 10px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #4F46E5 !important;
+        color: white !important;
+    }
+    /* Professional Colorful Buttons Styling */
+    .stButton>button {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 app_data = load_data()
   
-# --- SESSION STATE & PERSISTENT LOGIN VIA QUERY PARAMS ---
+# --- SESSION STATE ---
 if "logged_in" not in st.session_state:
     saved_user = st.query_params.get("user", "")
     if saved_user:
@@ -74,375 +107,200 @@ if "auth_provider" not in st.session_state:
 if "dismiss_alarm" not in st.session_state:
     st.session_state.dismiss_alarm = False
 
-# --- PROFESSIONAL LOGIN PAGE ---
+# --- LOGIN PAGE ---
 if not st.session_state.logged_in:
-    st.markdown("""
-        <style>
-        .stApp {
-            background-color: #f7f9fa;
-        }
-        .title-text {
-            text-align: center;
-            font-size: 26px;
-            font-weight: 700;
-            color: #1a1a1a;
-            margin-bottom: 8px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-        .sub-text {
-            text-align: center;
-            font-size: 12px;
-            color: #657786;
-            margin-bottom: 25px;
-            line-height: 1.4;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-        .stButton button {
-            width: 100%;
-            border-radius: 30px;
-            font-weight: 600;
-            padding: 12px 20px;
-            margin-bottom: 12px;
-            border: 1px solid #cfd9de;
-            background-color: #ffffff;
-            color: #0f1419;
-            font-size: 15px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .stButton button:hover {
-            background-color: #f7f9f9;
-            border-color: #b0c4de;
-        }
-        .divider-text {
-            text-align: center;
-            color: #536471;
-            font-size: 13px;
-            margin: 15px 0;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns([1, 2.5, 1])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.markdown("<div class='title-text'>Create your account</div>", unsafe_allow_html=True)
-        st.markdown("<div class='sub-text'>By continuing, you agree to the MemoryOS Terms of Service, Privacy Policy, and Cookie Policy.</div>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center;'>🧠 Welcome to MemoryOS</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #666;'>10th & 12th Board Exam Spaced Repetition Platform</p>", unsafe_allow_html=True)
         
-        if st.session_state.auth_provider == "Google":
-            st.info("🌐 Google Sign-in: Apni Google Email ID darj karein.")
-            g_email = st.text_input("Google Email ID", placeholder="example@gmail.com")
-            if st.button("Verify & Continue with Google 🚀"):
-                if g_email and "@" in g_email:
-                    st.session_state.logged_in = True
-                    st.session_state.username = g_email
-                    st.query_params["user"] = g_email
-                    st.success("Google account verified successfully!")
-                    st.rerun()
-                else:
-                    st.error("Kripya ek valid email ID dalein!")
-            if st.button("← Back"):
-                st.session_state.auth_provider = None
+        enter_email = st.text_input("Enter your email", placeholder="name@example.com")
+        if st.button("Continue to App 🚀", use_container_width=True):
+            if enter_email and "@" in enter_email:
+                st.session_state.logged_in = True
+                st.session_state.username = enter_email
+                st.query_params["user"] = enter_email
                 st.rerun()
-
-        elif st.session_state.auth_provider == "Apple":
-            st.info("🍎 Apple ID: Apni Apple Email ID darj karein.")
-            a_email = st.text_input("Apple ID Email", placeholder="example@icloud.com")
-            if st.button("Verify & Continue with Apple 🚀"):
-                if a_email and "@" in a_email:
-                    st.session_state.logged_in = True
-                    st.session_state.username = a_email
-                    st.query_params["user"] = a_email
-                    st.success("Apple ID verified successfully!")
-                    st.rerun()
-                else:
-                    st.error("Kripya ek valid Apple email ID dalein!")
-            if st.button("← Back"):
-                st.session_state.auth_provider = None
-                st.rerun()
-
-        else:
-            if st.button("🌐  Continue with Google"):
-                st.session_state.auth_provider = "Google"
-                st.rerun()
-                
-            if st.button("  Continue with Apple"):
-                st.session_state.auth_provider = "Apple"
-                st.rerun()
-
-            st.markdown("<div class='divider-text'>or</div>", unsafe_allow_html=True)
-            
-            enter_email = st.text_input("Enter your email", placeholder="name@example.com", label_visibility="collapsed")
-            
-            if st.button("Continue"):
-                if enter_email and "@" in enter_email:
-                    st.session_state.logged_in = True
-                    st.session_state.username = enter_email
-                    st.query_params["user"] = enter_email
-                    st.success(f"Swagat hai, {enter_email}!")
-                    st.rerun()
-                else:
-                    st.warning("Kripya pehle apni valid email id darj karein!")
-
+            else:
+                st.warning("Please enter a valid email!")
 else:
-    # --- SIDEBAR FIX FOR LONG EMAIL (WORD WRAP) ---
-    st.markdown("""
-        <style>
-        [data-testid="stSidebar"] {
-            word-break: break-word;
-            overflow-wrap: break-word;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # --- MAIN APP AFTER LOGIN ---
-    st.sidebar.title(f"👤 User:\n{st.session_state.username}")
-    
-    # --- REMINDER & GOAL SETTINGS IN SIDEBAR ---
+    # --- SIDEBAR ---
+    st.sidebar.title(f"👤 {st.session_state.username}")
     st.sidebar.markdown("---")
-    st.sidebar.subheader("🔔 Notification & Targets")
+    st.sidebar.subheader("⚙️ Settings")
     notif_toggle = st.sidebar.toggle("Enable Revision Alerts", value=True)
     
-    if notif_toggle:
-        reminder_time = st.sidebar.time_input("⏰ Daily Reminder Time", value=datetime.strptime("18:00", "%H:%M").time())
-        st.sidebar.info(f"Reminder set for {reminder_time.strftime('%I:%M %p')}")
-
-    daily_target_input = st.sidebar.slider("🎯 Daily Revision Target (Chapters)", min_value=1, max_value=10, value=app_data.get("daily_goal", 3))
+    daily_target_input = st.sidebar.slider("🎯 Daily Target (Chapters)", min_value=1, max_value=10, value=app_data.get("daily_goal", 3))
     if daily_target_input != app_data.get("daily_goal", 3):
         app_data["daily_goal"] = daily_target_input
         save_data(app_data)
 
-    if st.sidebar.button("Logout 🚪"):
+    if st.sidebar.button("Logout 🚪", use_container_width=True):
         st.session_state.logged_in = False
         st.session_state.username = ""
-        st.session_state.auth_provider = None
         if "user" in st.query_params:
             del st.query_params["user"]
         st.rerun()
 
-    st.title("🧠 MemoryOS: Board Exam Spaced Repetition + AI")
-    st.write(
-        "10th & 12th ke bacho ke liye Smart Revision & Aasan Hinglish AI Quiz System"
-    )
+    # --- TOP HEADER ---
+    st.title("🧠 MemoryOS Dashboard")
+    st.caption("Smart Revision & AI Powered Study Assistant for Board Exams")
 
-    # --- URGENT NOTIFICATION & REVISION ALERT SYSTEM WITH DISMISS BUTTON ---
     today = datetime.now().date()
-    due_topics_check = []
-    for item in app_data.get("topics", []):
-        try:
-            last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
-            stage = item["stage"]
-            intervals = item["intervals"]
-            if stage < len(intervals):
-                due_date = last_date + timedelta(days=intervals[stage])
-                if today >= due_date or item["last_date"] == datetime.now().strftime("%Y-%m-%d"):
-                    due_topics_check.append(item)
-        except:
-            pass
+    today_str_check = datetime.now().strftime("%Y-%m-%d")
 
-    if notif_toggle and due_topics_check and not st.session_state.dismiss_alarm:
-        st.markdown(f"""
-            <div style="background-color: #fff3cd; border-left: 6px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 10px;">
-                <h4 style="margin: 0; color: #856404;">🚨 Revision Time Alert!</h4>
-                <p style="margin: 5px 0 0 0; color: #856404; font-size: 14px;">
-                    Aapke paas aaj ke liye <b>{len(due_topics_check)} pending chapters</b> hain jinka revision ka samay ho gaya hai. Neeche alarm play karein aur revise karein!
-                </p>
-            </div>
-        """, unsafe_allow_html=True)
+    # --- TABS FOR CLEAN ORGANIZATION ---
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "📊 Today's Revisions", 
+        "📚 Manage Chapters", 
+        "🤖 AI Quiz", 
+        "📜 Revision History"
+    ])
+
+    # --- TAB 1: REVISIONS & METRICS ---
+    with tab1:
+        due_topics = []
+        revised_today_count = sum(1 for h in app_data.get("history", []) if h["date"] == today_str_check and "Revised:" in h["action"])
+
+        for index, item in enumerate(app_data.get("topics", [])):
+            try:
+                last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
+                stage = item["stage"]
+                intervals = item["intervals"]
+                if stage < len(intervals):
+                    due_date = last_date + timedelta(days=intervals[stage])
+                    if today >= due_date or item["last_date"] == today_str_check:
+                        due_topics.append((index, item, due_date))
+            except:
+                pass
+
+        # Alarm Alert
+        if notif_toggle and due_topics and not st.session_state.dismiss_alarm:
+            st.warning(f"🚨 **Alert:** Aapke paas aaj ke liye {len(due_topics)} pending chapters hain!")
+            st.markdown("""
+                <audio autoplay controls style="height:30px;">
+                  <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+                </audio>
+            """, unsafe_allow_html=True)
+            if st.button("🔕 Dismiss Alert"):
+                st.session_state.dismiss_alarm = True
+                st.rerun()
+
+        # Stats Cards
+        c1, c2, c3 = st.columns(3)
+        c1.metric("🔥 Current Streak", f"{app_data.get('streak', 0)} Days")
+        c2.metric("🎯 Today's Goal Progress", f"{revised_today_count} / {app_data.get('daily_goal', 3)}")
+        c3.metric("⏰ Pending Revisions", f"{len(due_topics)}")
+
+        target_goal = app_data.get("daily_goal", 3)
+        st.progress(min(revised_today_count / target_goal, 1.0))
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.subheader("🔥 Pending Revisions For Today")
         
-        st.markdown("""
-            <audio autoplay loop controls>
-              <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
-              Your browser does not support the audio element.
-            </audio>
-            <p style="font-size:11px; color:#666; margin-bottom: 5px;">(Agar alarm auto-play na ho toh upar play button dabayein 🔔)</p>
-        """, unsafe_allow_html=True)
+        if not due_topics:
+            st.success("🎉 Sabhi Revisions Complete Ho Chuke Hain!")
+        else:
+            for idx, item, due_date_val in due_topics:
+                with st.container():
+                    st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
+                    col_a, col_b = st.columns([3, 1])
+                    col_a.markdown(f"### {item['subject']}: {item['topic']}\n*Due Date: {due_date_val.strftime('%d %b %Y')}*")
+                    if col_b.button("✅ Mark Revised", key=f"rev_{idx}", use_container_width=True):
+                        app_data["topics"][idx]["last_date"] = today_str_check
+                        app_data["topics"][idx]["stage"] += 1
+                        app_data["history"].append({"date": today_str_check, "action": f"Revised: {item['subject']} - {item['topic']}"})
+                        if app_data.get("last_active") != today_str_check:
+                            app_data["streak"] = app_data.get("streak", 0) + 1
+                            app_data["last_active"] = today_str_check
+                        save_data(app_data)
+                        st.rerun()
+                    st.markdown("</div>", unsafe_allow_html=True)
 
-        if st.button("🔕 Stop Alarm & Dismiss Alert"):
-            st.session_state.dismiss_alarm = True
-            st.rerun()
+    # --- TAB 2: CHAPTER MANAGEMENT ---
+    with tab2:
+        st.subheader("📚 Add New Chapter")
+        with st.form("add_chapter_form"):
+            col_f1, col_f2 = st.columns(2)
+            subject = col_f1.selectbox("Subject", ["Physics", "Chemistry", "Maths", "Biology", "English", "Social Science"])
+            chap_no = col_f2.text_input("Chapter Number (e.g. 1)")
+            topic_name = st.text_input("Chapter / Topic Name")
+            submitted = st.form_submit_button("Save Chapter 🚀", use_container_width=True)
 
-    # 1. Dashboard & Revision Section
-    st.subheader("📚 Naya Chapter Add Karein")
-    subject = st.selectbox(
-        "Subject Chunein",
-        ["Physics", "Chemistry", "Maths", "Biology", "English", "Social Science"],
-    )
-    chap_no = st.text_input("Chapter Number (e.g. 1)")
-    topic_name = st.text_input("Chapter / Topic Ka Naam")
+            if submitted:
+                if chap_no and topic_name:
+                    full_title = f"Ch {chap_no}: {topic_name}"
+                    app_data["topics"].append({
+                        "subject": subject,
+                        "topic": full_title,
+                        "last_date": today_str_check,
+                        "stage": 0,
+                        "intervals": [1, 3, 7, 15, 30]
+                    })
+                    app_data["history"].append({"date": today_str_check, "action": f"Added: {subject} - {full_title}"})
+                    save_data(app_data)
+                    st.success(f"'{full_title}' saved successfully!")
+                    st.rerun()
+                else:
+                    st.error("Dono Details Fill Karein!")
 
-    if st.button("Save & Schedule 🚀"):
-      if not chap_no or not topic_name:
-        st.error("Kripya Chapter Number aur Topic ka naam dono likhein!")
-      else:
-        full_topic_title = f"Ch {chap_no}: {topic_name}"
-        today_str = datetime.now().strftime("%Y-%m-%d")
+        st.markdown("---")
+        st.subheader("📈 Subject Progress & Saved Chapters")
+        
+        all_subjects = ["Physics", "Chemistry", "Maths", "Biology", "English", "Social Science"]
+        for sub in all_subjects:
+            sub_topics = [t for t in app_data.get("topics", []) if t["subject"] == sub]
+            completed = sum(1 for t in sub_topics if t["stage"] >= len(t["intervals"]))
+            total = len(sub_topics)
+            ratio = completed / total if total > 0 else 0.0
+            st.write(f"**{sub}** ({completed}/{total} chapters mastered)")
+            st.progress(ratio)
 
-        new_item = {
-            "subject": subject,
-            "topic": full_topic_title,
-            "last_date": today_str,
-            "stage": 0,
-            "intervals": [1, 3, 7, 15, 30],
-        }
+        st.markdown("### 📚 All Saved Topics")
+        for index, item in enumerate(app_data.get("topics", [])):
+            col_t1, col_t2 = st.columns([4, 1])
+            col_t1.write(f"• **{item['subject']}** - {item['topic']} (Stage: {item['stage']})")
+            if col_t2.button("🗑️ Delete", key=f"del_{index}", use_container_width=True):
+                app_data["topics"].pop(index)
+                save_data(app_data)
+                st.rerun()
 
-        app_data["topics"].append(new_item)
-        save_data(app_data)
-        st.success(f"'{full_topic_title}' ({subject}) successfully save ho gaya!")
-        st.rerun()
+    # --- TAB 3: AI QUIZ ---
+    with tab3:
+        st.subheader("🤖 AI Instant Quiz Generator")
+        ai_subject = st.selectbox("Subject", ["Physics", "Chemistry", "Maths", "Biology", "English", "Social Science"], key="tab3_sub")
+        ai_topic = st.text_input("Topic Name", key="tab3_top")
 
-    st.markdown("---")
-    st.subheader("📊 Your Dashboard & Due Revisions")
+        if st.button("Generate Quiz Question ⚡", use_container_width=True):
+            if ai_topic:
+                with st.spinner("AI sawal taiyar kar raha hai..."):
+                    try:
+                        model = genai.GenerativeModel("gemini-1.5-flash")
+                        prompt = f"Create 1 MCQ for Indian student on {ai_subject} chapter {ai_topic} in Aasan Hinglish."
+                        response = model.generate_content(prompt)
+                        st.markdown(response.text)
+                    except Exception as e:
+                        st.error("AI Limit Exceeded. Try again in 2 minutes.")
+            else:
+                st.warning("Topic name enter karein!")
 
-    if not app_data["topics"]:
-      st.info(
-          "Abhi koi chapter saved nahi hai. Upar se apna pehla chapter add karein!"
-      )
-    else:
-      due_topics = []
-      today_str_check = datetime.now().strftime("%Y-%m-%d")
-      revised_today_count = 0
-
-      for history_item in app_data.get("history", []):
-          if history_item["date"] == today_str_check and "Revised:" in history_item["action"]:
-              revised_today_count += 1
-
-      for index, item in enumerate(app_data["topics"]):
-        try:
-          last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
-          stage = item["stage"]
-          intervals = item["intervals"]
-
-          if stage < len(intervals):
-            next_due_days = intervals[stage]
-            due_date = last_date + timedelta(days=next_due_days)
-          else:
-            due_date = last_date
-
-          if stage < len(intervals) and (today >= due_date or item["last_date"] == today_str_check):
-            due_topics.append((index, item, due_date))
-        except:
-          pass
-
-      # --- DAILY REVISION GOAL & TARGET UI ---
-      target_goal = app_data.get("daily_goal", 3)
-      progress_val = min(revised_today_count / target_goal, 1.0)
-      
-      col_m1, col_m2 = st.columns(2)
-      col_m1.metric(label="🔥 Current Streak", value=f"{app_data.get('streak', 0)} Days")
-      col_m2.metric(label="🎯 Today's Goal Progress", value=f"{revised_today_count} / {target_goal} Done")
-      
-      st.progress(progress_val, text=f"Daily Target Progress: {int(progress_val * 100)}% completed")
-
-      st.write(f"⏰ **Pending Revisions Today:** {len(due_topics)}")
-
-      if due_topics:
-        st.markdown("### 🔥 Aaj Ke Pending Revisions:")
-        for idx, item, due_date_val in due_topics:
-          col1, col2 = st.columns([3, 1])
-          col1.write(f"**{item['subject']}** - {item['topic']} *(Due: {due_date_val.strftime('%d %b %Y')})*")
-          if col2.button("✅ Done", key=f"rev_{idx}"):
-            today_str = datetime.now().strftime("%Y-%m-%d")
-            app_data["topics"][idx]["last_date"] = today_str
-            app_data["topics"][idx]["stage"] += 1
-
-            if "history" not in app_data:
+    # --- TAB 4: REVISION HISTORY ---
+    with tab4:
+        st.subheader("📜 Complete Activity & Revision History")
+        history_list = app_data.get("history", [])
+        
+        if not history_list:
+            st.info("Abhi tak koi revision history nahi hai. Jab aap chapters revise karenge, yahan logs dikhenge!")
+        else:
+            for hist in reversed(history_list):
+                st.markdown(f"""
+                    <div style="background-color: white; padding: 10px 15px; border-radius: 8px; border-left: 4px solid #4F46E5; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <b>📅 Date:</b> {hist['date']} &nbsp;&nbsp;|&nbsp;&nbsp; <b>📝 Action:</b> {hist['action']}
+                    </div>
+                """, unsafe_allow_html=True)
+            
+            if st.button("Clear History 🧹", use_container_width=True):
                 app_data["history"] = []
-            app_data["history"].append({
-                "date": today_str,
-                "action": f"Revised: {item['subject']} - {item['topic']}"
-            })
-
-            last_active = app_data.get("last_active", "")
-            if last_active != today_str:
-              app_data["streak"] = app_data.get("streak", 0) + 1
-              app_data["last_active"] = today_str
-
-            save_data(app_data)
-            st.success("Revision Done! Chapter next interval par schedule ho gaya! 🎉")
-            st.rerun()
-
-      # --- SUBJECT-WISE PROGRESS BARS & ANALYTICS ---
-      st.markdown("### 📈 Subject-wise Syllabus Progress")
-      all_subjects = ["Physics", "Chemistry", "Maths", "Biology", "English", "Social Science"]
-      
-      subject_counts = {sub: {"total": 0, "completed": 0} for sub in all_subjects}
-      for item in app_data["topics"]:
-          sub = item["subject"]
-          if sub in subject_counts:
-              subject_counts[sub]["total"] += 1
-              if item["stage"] >= len(item["intervals"]):
-                  subject_counts[sub]["completed"] += 1
-
-      for sub in all_subjects:
-          tot = subject_counts[sub]["total"]
-          comp = subject_counts[sub]["completed"]
-          ratio = (comp / tot) if tot > 0 else 0.0
-          st.write(f"**{sub}** ({comp}/{tot} chapters mastered)")
-          st.progress(ratio)
-
-      st.markdown("### 📚 All Saved Chapters & Management")
-      for index, item in enumerate(app_data["topics"]):
-        c1, c2 = st.columns([4, 1])
-        c1.write(f"- **{item['subject']}** | {item['topic']} | Last Studied: {item['last_date']} (Stage: {item['stage']})")
-        if c2.button("🗑️ Delete", key=f"del_{index}"):
-            deleted = app_data["topics"].pop(index)
-            save_data(app_data)
-            st.warning(f"'{deleted['topic']}' delete ho gaya!")
-            st.rerun()
-
-      if app_data.get("history"):
-          st.markdown("---")
-          st.markdown("### 📜 Recent Revision History")
-          for h in reversed(app_data["history"][-5:]):
-              st.write(f"✅ `[{h['date']}]` {h['action']}")
-
-    st.markdown("---")
-
-    # 2. AI Quiz Generator Section
-    st.subheader("🤖 AI Instant Quiz & Practice Generator (Aasan Bhasha)")
-
-    ai_subject = st.selectbox(
-        "Subject Select Karein",
-        ["Physics", "Chemistry", "Maths", "Biology", "English", "Social Science"],
-        key="ai_sub",
-    )
-    ai_topic = st.text_input(
-        "Chapter ya Topic ka naam likhein (jaise Panchlite / Current Electricity)",
-        key="ai_top",
-    )
-
-    if st.button("Generate Aasan AI Quiz ⚡"):
-      if ai_topic:
-        with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
-          try:
-            model = genai.GenerativeModel("gemini-3.8-flash")
-            
-            prompt = f"""
-            How to study for board exams in Aasan Hinglish.
-            Subject: {ai_subject}
-            Topic/Chapter: {ai_topic}
-            
-            Create 1 high-quality Multiple Choice Question (MCQ) in Aasan Hinglish. 
-            If the topic is a story or literature chapter, make sure the question is about the story plot, characters, theme, or author—DO NOT ask formulas or numericals.
-            If the Topic is Science or Math, make sure it tests concepts or formulas.
-            
-            Format your response cleanly like this:
-            **Q1: [Sawall Hinglish mein]**
-            A) [Option A]
-            B) [Option B]
-            C) [Option C]
-            D) [Option D]
-            
-            **Sahi Jawab:** [Correct Option]
-            **Explanation:** [Aasan Hinglish mein chhota sa explanation]
-            """
-            
-            response = model.generate_content(prompt)
-            st.success(f"'{ai_topic}' ({ai_subject}) ke liye sawal taiyar hai!")
-            st.markdown("---")
-            st.markdown(response.text)
-            
-          except Exception as e:
-            st.error(f"AI Generation Error: Bahut zyada requests ki wajah se limit cross ho gayi hai. Kripya 2 minute baad try karein!")
-      else:
-        st.warning("Kripya chapter ya topic ka naam darj karein!")
+                save_data(app_data)
+                st.rerun()
+                print("Revision history cleared successfully.")
