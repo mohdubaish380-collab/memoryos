@@ -13,33 +13,40 @@ try:
 except:
     pass
 
-DATA_FILE = "smart_revision_web.json"
+# --- DYNAMIC USER-SPECIFIC DATA FILE FUNCTION ---
+def get_user_data_file(username):
+    # Har user ke liye ek alag file banegi taaki data mix na ho
+    safe_username = username.replace("@", "_at_").replace(".", "_")
+    return f"data_{safe_username}.json"
  
-def load_data():
-  if not os.path.exists(DATA_FILE):
-    default_data = {"topics": [], "streak": 0, "last_active": "", "users": [], "history": [], "daily_goal": 3}
-    with open(DATA_FILE, "w") as f:
-      json.dump(default_data, f, indent=4)
-    return default_data
-  try:
-    with open(DATA_FILE, "r") as f:
-      data = json.load(f)
-      if "history" not in data:
-          data["history"] = []
-      if "daily_goal" not in data:
-          data["daily_goal"] = 3
-      if "topics" not in data:
-          data["topics"] = []
-      return data
-  except:
-    return {"topics": [], "streak": 0, "last_active": "", "users": [], "history": [], "daily_goal": 3}
+def load_data(username):
+    if not username:
+        return {"topics": [], "streak": 0, "last_active": "", "history": [], "daily_goal": 3}
+    
+    data_file = get_user_data_file(username)
+    if not os.path.exists(data_file):
+        default_data = {"topics": [], "streak": 0, "last_active": "", "history": [], "daily_goal": 3}
+        with open(data_file, "w") as f:
+            json.dump(default_data, f, indent=4)
+        return default_data
+    try:
+        with open(data_file, "r") as f:
+            data = json.load(f)
+            if "history" not in data: data["history"] = []
+            if "daily_goal" not in data: data["daily_goal"] = 3
+            if "topics" not in data: data["topics"] = []
+            return data
+    except:
+        return {"topics": [], "streak": 0, "last_active": "", "history": [], "daily_goal": 3}
 
-def save_data(data):
-  try:
-    with open(DATA_FILE, "w") as f:
-      json.dump(data, f, indent=4)
-  except Exception as e:
-    print(f"Error saving data: {e}")
+def save_data(username, data):
+    if not username: return
+    data_file = get_user_data_file(username)
+    try:
+        with open(data_file, "w") as f:
+            json.dump(data, f, indent=4)
+    except Exception as e:
+        print(f"Error saving data: {e}")
 
 st.set_page_config(
     page_title="MemoryOS - Board Exam Prep", page_icon="🧠", layout="wide"
@@ -73,7 +80,6 @@ st.markdown("""
         background-color: #4F46E5 !important;
         color: white !important;
     }
-    /* Professional Colorful Buttons Styling */
     .stButton>button {
         border-radius: 8px;
         font-weight: 600;
@@ -87,8 +93,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-app_data = load_data()
-  
 # --- SESSION STATE ---
 if "logged_in" not in st.session_state:
     saved_user = st.query_params.get("user", "")
@@ -100,9 +104,6 @@ if "logged_in" not in st.session_state:
 
 if "username" not in st.session_state:
     st.session_state.username = st.query_params.get("user", "")
-
-if "auth_provider" not in st.session_state:
-    st.session_state.auth_provider = None
 
 if "dismiss_alarm" not in st.session_state:
     st.session_state.dismiss_alarm = False
@@ -124,6 +125,9 @@ if not st.session_state.logged_in:
             else:
                 st.warning("Please enter a valid email!")
 else:
+    # Load data specific to the logged-in user
+    app_data = load_data(st.session_state.username)
+
     # --- SIDEBAR ---
     st.sidebar.title(f"👤 {st.session_state.username}")
     st.sidebar.markdown("---")
@@ -133,7 +137,7 @@ else:
     daily_target_input = st.sidebar.slider("🎯 Daily Target (Chapters)", min_value=1, max_value=10, value=app_data.get("daily_goal", 3))
     if daily_target_input != app_data.get("daily_goal", 3):
         app_data["daily_goal"] = daily_target_input
-        save_data(app_data)
+        save_data(st.session_state.username, app_data)
 
     if st.sidebar.button("Logout 🚪", use_container_width=True):
         st.session_state.logged_in = False
@@ -213,7 +217,7 @@ else:
                         if app_data.get("last_active") != today_str_check:
                             app_data["streak"] = app_data.get("streak", 0) + 1
                             app_data["last_active"] = today_str_check
-                        save_data(app_data)
+                        save_data(st.session_state.username, app_data)
                         st.rerun()
                     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -238,7 +242,7 @@ else:
                         "intervals": [1, 3, 7, 15, 30]
                     })
                     app_data["history"].append({"date": today_str_check, "action": f"Added: {subject} - {full_title}"})
-                    save_data(app_data)
+                    save_data(st.session_state.username, app_data)
                     st.success(f"'{full_title}' saved successfully!")
                     st.rerun()
                 else:
@@ -262,7 +266,7 @@ else:
             col_t1.write(f"• **{item['subject']}** - {item['topic']} (Stage: {item['stage']})")
             if col_t2.button("🗑️ Delete", key=f"del_{index}", use_container_width=True):
                 app_data["topics"].pop(index)
-                save_data(app_data)
+                save_data(st.session_state.username, app_data)
                 st.rerun()
 
     # --- TAB 3: AI QUIZ ---
@@ -301,6 +305,5 @@ else:
             
             if st.button("Clear History 🧹", use_container_width=True):
                 app_data["history"] = []
-                save_data(app_data)
+                save_data(st.session_state.username, app_data)
                 st.rerun()
-                print("Revision history cleared successfully.")
