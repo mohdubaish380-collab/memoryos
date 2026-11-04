@@ -17,7 +17,10 @@ DATA_FILE = "smart_revision_web.json"
  
 def load_data():
   if not os.path.exists(DATA_FILE):
-    return {"topics": [], "streak": 0, "last_active": "", "users": [], "history": [], "daily_goal": 3}
+    default_data = {"topics": [], "streak": 0, "last_active": "", "users": [], "history": [], "daily_goal": 3}
+    with open(DATA_FILE, "w") as f:
+      json.dump(default_data, f, indent=4)
+    return default_data
   try:
     with open(DATA_FILE, "r") as f:
       data = json.load(f)
@@ -25,13 +28,18 @@ def load_data():
           data["history"] = []
       if "daily_goal" not in data:
           data["daily_goal"] = 3
+      if "topics" not in data:
+          data["topics"] = []
       return data
   except:
     return {"topics": [], "streak": 0, "last_active": "", "users": [], "history": [], "daily_goal": 3}
 
 def save_data(data):
-  with open(DATA_FILE, "w") as f:
-    json.dump(data, f, indent=4)
+  try:
+    with open(DATA_FILE, "w") as f:
+      json.dump(data, f, indent=4)
+  except Exception as e:
+    print(f"Error saving data: {e}")
 
 st.set_page_config(
     page_title="MemoryOS - Board Exam Startup", page_icon="🧠", layout="centered"
@@ -226,7 +234,7 @@ else:
             intervals = item["intervals"]
             if stage < len(intervals):
                 due_date = last_date + timedelta(days=intervals[stage])
-                if today >= due_date or item["last_date"] == datetime.now().strftime("%Y-%m-%d"):
+                if today >= due_date:
                     due_topics_check.append(item)
         except:
             pass
@@ -310,11 +318,8 @@ else:
           else:
             due_date = last_date
 
-          if stage < len(intervals) and (
-              today >= due_date
-              or item["last_date"] == datetime.now().strftime("%Y-%m-%d")
-          ):
-            due_topics.append((index, item))
+          if stage < len(intervals) and today >= due_date:
+            due_topics.append((index, item, due_date))
         except:
           pass
 
@@ -332,9 +337,9 @@ else:
 
       if due_topics:
         st.markdown("### 🔥 Aaj Ke Pending Revisions:")
-        for idx, item in due_topics:
+        for idx, item, due_date_val in due_topics:
           col1, col2 = st.columns([3, 1])
-          col1.write(f"**{item['subject']}** - {item['topic']}")
+          col1.write(f"**{item['subject']}** - {item['topic']} *(Due Date: {due_date_val.strftime('%d %b %Y')})*")
           if col2.button("✅ Done", key=f"rev_{idx}"):
             today_str = datetime.now().strftime("%Y-%m-%d")
             app_data["topics"][idx]["last_date"] = today_str
@@ -353,7 +358,7 @@ else:
               app_data["last_active"] = today_str
 
             save_data(app_data)
-            st.success("Revision Done! Streak updated! 🎉")
+            st.success("Revision Done! Chapter next interval par schedule ho gaya! 🎉")
             st.rerun()
 
       # --- SUBJECT-WISE PROGRESS BARS & ANALYTICS ---
@@ -365,7 +370,7 @@ else:
           sub = item["subject"]
           if sub in subject_counts:
               subject_counts[sub]["total"] += 1
-              if item["stage"] >= 2:
+              if item["stage"] >= len(item["intervals"]):
                   subject_counts[sub]["completed"] += 1
 
       for sub in all_subjects:
@@ -419,7 +424,7 @@ else:
             
             Create 1 high-quality Multiple Choice Question (MCQ) in Aasan Hinglish. 
             If the topic is a story or literature chapter, make sure the question is about the story plot, characters, theme, or author—DO NOT ask formulas or numericals.
-            If theTopic is Science or Math, make sure it tests concepts or formulas.
+            If the Topic is Science or Math, make sure it tests concepts or formulas.
             
             Format your response cleanly like this:
             **Q1: [Sawall Hinglish mein]**
