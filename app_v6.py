@@ -234,7 +234,7 @@ else:
             intervals = item["intervals"]
             if stage < len(intervals):
                 due_date = last_date + timedelta(days=intervals[stage])
-                if today >= due_date:
+                if today >= due_date or item["last_date"] == datetime.now().strftime("%Y-%m-%d"):
                     due_topics_check.append(item)
         except:
             pass
@@ -318,7 +318,7 @@ else:
           else:
             due_date = last_date
 
-          if stage < len(intervals) and today >= due_date:
+          if stage < len(intervals) and (today >= due_date or item["last_date"] == today_str_check):
             due_topics.append((index, item, due_date))
         except:
           pass
@@ -339,7 +339,7 @@ else:
         st.markdown("### 🔥 Aaj Ke Pending Revisions:")
         for idx, item, due_date_val in due_topics:
           col1, col2 = st.columns([3, 1])
-          col1.write(f"**{item['subject']}** - {item['topic']} *(Due Date: {due_date_val.strftime('%d %b %Y')})*")
+          col1.write(f"**{item['subject']}** - {item['topic']} *(Due: {due_date_val.strftime('%d %b %Y')})*")
           if col2.button("✅ Done", key=f"rev_{idx}"):
             today_str = datetime.now().strftime("%Y-%m-%d")
             app_data["topics"][idx]["last_date"] = today_str
@@ -415,10 +415,10 @@ else:
       if ai_topic:
         with st.spinner("AI aasan Hinglish sawal tayyar kar raha hai..."):
           try:
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            model = genai.GenerativeModel("gemini-3.8-flash")
             
             prompt = f"""
-            You are an expert board exam teacher for Indian 10th and 12th students.
+            How to study for board exams in Aasan Hinglish.
             Subject: {ai_subject}
             Topic/Chapter: {ai_topic}
             
