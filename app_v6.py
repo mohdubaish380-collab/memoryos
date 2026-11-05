@@ -13,9 +13,7 @@ try:
 except:
     pass
 
-# --- DYNAMIC USER-SPECIFIC DATA FILE FUNCTION ---
 def get_user_data_file(username):
-    # Har user ke liye ek alag file banegi taaki data mix na ho
     safe_username = username.replace("@", "_at_").replace(".", "_")
     return f"data_{safe_username}.json"
  
@@ -25,10 +23,22 @@ def load_data(username):
     
     data_file = get_user_data_file(username)
     if not os.path.exists(data_file):
+        old_file = "smart_revision_web.json"
+        if os.path.exists(old_file):
+            try:
+                with open(old_file, "r") as f:
+                    old_data = json.load(f)
+                    with open(data_file, "w") as uf:
+                        json.dump(old_data, uf, indent=4)
+                    return old_data
+            except:
+                pass
+        
         default_data = {"topics": [], "streak": 0, "last_active": "", "history": [], "daily_goal": 3}
         with open(data_file, "w") as f:
             json.dump(default_data, f, indent=4)
         return default_data
+        
     try:
         with open(data_file, "r") as f:
             data = json.load(f)
@@ -52,7 +62,6 @@ st.set_page_config(
     page_title="MemoryOS - Board Exam Prep", page_icon="🧠", layout="wide"
 )
 
-# --- PROFESSIONAL UI & BUTTON STYLING (CSS) ---
 st.markdown("""
     <style>
     .main {
@@ -93,7 +102,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- SESSION STATE ---
 if "logged_in" not in st.session_state:
     saved_user = st.query_params.get("user", "")
     if saved_user:
@@ -108,7 +116,6 @@ if "username" not in st.session_state:
 if "dismiss_alarm" not in st.session_state:
     st.session_state.dismiss_alarm = False
 
-# --- LOGIN PAGE ---
 if not st.session_state.logged_in:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -125,10 +132,8 @@ if not st.session_state.logged_in:
             else:
                 st.warning("Please enter a valid email!")
 else:
-    # Load data specific to the logged-in user
     app_data = load_data(st.session_state.username)
 
-    # --- SIDEBAR ---
     st.sidebar.title(f"👤 {st.session_state.username}")
     st.sidebar.markdown("---")
     st.sidebar.subheader("⚙️ Settings")
@@ -146,14 +151,12 @@ else:
             del st.query_params["user"]
         st.rerun()
 
-    # --- TOP HEADER ---
     st.title("🧠 MemoryOS Dashboard")
     st.caption("Smart Revision & AI Powered Study Assistant for Board Exams")
 
     today = datetime.now().date()
     today_str_check = datetime.now().strftime("%Y-%m-%d")
 
-    # --- TABS FOR CLEAN ORGANIZATION ---
     tab1, tab2, tab3, tab4 = st.tabs([
         "📊 Today's Revisions", 
         "📚 Manage Chapters", 
@@ -161,7 +164,6 @@ else:
         "📜 Revision History"
     ])
 
-    # --- TAB 1: REVISIONS & METRICS ---
     with tab1:
         due_topics = []
         revised_today_count = sum(1 for h in app_data.get("history", []) if h["date"] == today_str_check and "Revised:" in h["action"])
@@ -171,14 +173,18 @@ else:
                 last_date = datetime.strptime(item["last_date"], "%Y-%m-%d").date()
                 stage = item["stage"]
                 intervals = item["intervals"]
-                if stage < len(intervals):
-                    due_date = last_date + timedelta(days=intervals[stage])
-                    if today >= due_date or item["last_date"] == today_str_check:
-                        due_topics.append((index, item, due_date))
+                
+                # Agar stage 0 hai (naya chapter), toh wo turant aaj due dikhega
+                if stage == 0:
+                    due_topics.append((index, item, last_date))
+                else:
+                    if stage < len(intervals):
+                        due_date = last_date + timedelta(days=intervals[stage])
+                        if today >= due_date:
+                            due_topics.append((index, item, due_date))
             except:
                 pass
 
-        # Alarm Alert
         if notif_toggle and due_topics and not st.session_state.dismiss_alarm:
             st.warning(f"🚨 **Alert:** Aapke paas aaj ke liye {len(due_topics)} pending chapters hain!")
             st.markdown("""
@@ -190,7 +196,6 @@ else:
                 st.session_state.dismiss_alarm = True
                 st.rerun()
 
-        # Stats Cards
         c1, c2, c3 = st.columns(3)
         c1.metric("🔥 Current Streak", f"{app_data.get('streak', 0)} Days")
         c2.metric("🎯 Today's Goal Progress", f"{revised_today_count} / {app_data.get('daily_goal', 3)}")
@@ -221,7 +226,6 @@ else:
                         st.rerun()
                     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- TAB 2: CHAPTER MANAGEMENT ---
     with tab2:
         st.subheader("📚 Add New Chapter")
         with st.form("add_chapter_form"):
@@ -241,7 +245,7 @@ else:
                         "stage": 0,
                         "intervals": [1, 3, 7, 15, 30]
                     })
-                    app_data["history"].append({"date": today_str_check, "action": f"Added: {subject} - {full_title}"})
+                    # Naya chapter add hone par history mein entry nahi jayegi
                     save_data(st.session_state.username, app_data)
                     st.success(f"'{full_title}' saved successfully!")
                     st.rerun()
@@ -269,7 +273,6 @@ else:
                 save_data(st.session_state.username, app_data)
                 st.rerun()
 
-    # --- TAB 3: AI QUIZ ---
     with tab3:
         st.subheader("🤖 AI Instant Quiz Generator")
         ai_subject = st.selectbox("Subject", ["Physics", "Chemistry", "Maths", "Biology", "English", "Social Science"], key="tab3_sub")
@@ -279,7 +282,7 @@ else:
             if ai_topic:
                 with st.spinner("AI sawal taiyar kar raha hai..."):
                     try:
-                        model = genai.GenerativeModel("gemini-1.5-flash")
+                        model = genai.GenerativeModel("gemini-3.8-pro")
                         prompt = f"Create 1 MCQ for Indian student on {ai_subject} chapter {ai_topic} in Aasan Hinglish."
                         response = model.generate_content(prompt)
                         st.markdown(response.text)
@@ -288,7 +291,6 @@ else:
             else:
                 st.warning("Topic name enter karein!")
 
-    # --- TAB 4: REVISION HISTORY ---
     with tab4:
         st.subheader("📜 Complete Activity & Revision History")
         history_list = app_data.get("history", [])
