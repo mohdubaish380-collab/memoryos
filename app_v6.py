@@ -22,6 +22,8 @@ def load_data(username):
         return {"topics": [], "streak": 0, "last_active": "", "history": [], "daily_goal": 3}
     
     data_file = get_user_data_file(username)
+    
+    # Agar user specific file nahi hai, toh default ya purani file check karo
     if not os.path.exists(data_file):
         old_file = "smart_revision_web.json"
         if os.path.exists(old_file):
@@ -174,7 +176,6 @@ else:
                 stage = item["stage"]
                 intervals = item["intervals"]
                 
-                # Agar stage 0 hai (naya chapter), toh wo turant aaj due dikhega
                 if stage == 0:
                     due_topics.append((index, item, last_date))
                 else:
@@ -245,7 +246,6 @@ else:
                         "stage": 0,
                         "intervals": [1, 3, 7, 15, 30]
                     })
-                    # Naya chapter add hone par history mein entry nahi jayegi
                     save_data(st.session_state.username, app_data)
                     st.success(f"'{full_title}' saved successfully!")
                     st.rerun()
@@ -282,7 +282,7 @@ else:
             if ai_topic:
                 with st.spinner("AI sawal taiyar kar raha hai..."):
                     try:
-                        model = genai.GenerativeModel("gemini-3.8-pro")
+                        model = genai.GenerativeModel("gemini-1.5-flash")
                         prompt = f"Create 1 MCQ for Indian student on {ai_subject} chapter {ai_topic} in Aasan Hinglish."
                         response = model.generate_content(prompt)
                         st.markdown(response.text)
